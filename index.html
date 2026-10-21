@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RCM Quest | HRC Training Gamification</title>
+<style>
+:root{
+ --ink:#17233f;--muted:#667085;--bg:#f3f6fb;--card:#fff;--line:#e3e8f1;
+ --blue:#2857ff;--blue2:#706cff;--nav:#101a37;--green:#159466;--red:#d33f56;
+ --amber:#bd7c0f;--gold:#efb429;--silver:#9aa6b6;--bronze:#b86f48;
+ --shadow:0 16px 48px rgba(26,42,85,.11)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,textarea,select{font:inherit}
+.hidden{display:none!important}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:grid;place-items:center;padding:24px;background:
+ radial-gradient(circle at 10% 10%,rgba(84,105,255,.22),transparent 28%),
+ radial-gradient(circle at 90% 85%,rgba(40,87,255,.15),transparent 30%),
+ linear-gradient(135deg,#eef3ff,#fbfcff)}
+.login-shell{width:min(1080px,100%);display:grid;grid-template-columns:1.08fr .92fr;background:white;border-radius:30px;overflow:hidden;box-shadow:0 28px 85px rgba(31,46,89,.17)}
+.login-brand{padding:50px;background:linear-gradient(145deg,#101a37,#173887 58%,#315efb);color:white;position:relative;overflow:hidden}
+.login-brand:after{content:"";position:absolute;width:360px;height:360px;border-radius:50%;background:rgba(255,255,255,.07);right:-160px;bottom:-160px}
+.logo{width:55px;height:55px;border-radius:17px;background:linear-gradient(135deg,#5b82ff,#9279ff);display:grid;place-items:center;font-size:25px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.login-brand h1{font-size:42px;line-height:1.06;margin:60px 0 14px}.login-brand p{color:#dfe6ff;line-height:1.65;max-width:470px}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px}.feature{padding:13px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.11);border-radius:14px;font-size:12px}
+.login-panel{padding:52px 46px;display:flex;align-items:center}.login-panel>div{width:100%}.eyebrow{text-transform:uppercase;font-size:11px;letter-spacing:.14em;font-weight:900;color:#6474aa}.login-panel h2{font-size:30px;margin:7px 0 8px}.sub{font-size:13px;color:var(--muted);line-height:1.55}
+.field{margin:14px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;padding:11px 12px;border:1px solid #d6deea;border-radius:11px;outline:none;background:white}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(40,87,255,.11)}
+.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:850;cursor:pointer;background:var(--blue);color:white;transition:.18s}.btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(40,87,255,.23)}.btn.full{width:100%;padding:13px;margin-top:7px}.btn.alt{background:#eef2ff;color:#294bc6}.btn.gray{background:#eef1f5;color:#59647a}.btn.green{background:#e6f8f0;color:#14764f}.btn.red{background:#fff0f2;color:#c12e47}
+.route{display:none;margin-top:14px;padding:11px;border-radius:11px;font-size:12px;font-weight:800}.route.show{display:block}.route.admin{background:#ecefff;color:#4251b4}.route.user{background:#e8f7f0;color:#17754f}.route.error{background:#fff0f2;color:#b52c44}
+.note{margin-top:16px;padding:12px;background:#f6f7fb;border:1px solid var(--line);border-radius:11px;font-size:11px;line-height:1.55;color:#697386}
+
+/* SHARED APP */
+#appScreen{min-height:100vh}
+.header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.93);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.header-main{max-width:1450px;margin:auto;padding:11px 20px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:205px}.brand .logo{width:42px;height:42px;border-radius:13px;font-size:20px}.brand b{font-size:18px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.role-badge{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:900;background:#edf1ff;color:#4258be}
+.timer-wrap{flex:1;display:flex;justify-content:center}.timer{display:flex;align-items:center;gap:11px;background:#101a37;color:#fff;padding:8px 17px;border-radius:16px;box-shadow:0 8px 26px rgba(15,26,61,.22)}.timer span{font-size:10px;text-transform:uppercase;letter-spacing:.11em;color:#abb8de}.timer strong{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:.05em}.timer.running{animation:pulse 1.45s infinite}@keyframes pulse{50%{box-shadow:0 8px 34px rgba(40,87,255,.48)}}
+.identity{display:flex;align-items:center;gap:9px}.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#e9eeff;color:var(--blue);font-weight:900}.identity b{font-size:12px}.identity small{display:block;color:var(--muted);font-size:10px}
+.nav{max-width:1450px;margin:auto;padding:7px 20px 11px;display:flex;gap:6px;flex-wrap:wrap}.nav button{border:0;background:transparent;padding:9px 12px;border-radius:10px;color:#64708a;font-weight:800;font-size:12px;cursor:pointer}.nav button.active{background:#edf1ff;color:var(--blue)}
+main{max-width:1450px;margin:auto;padding:25px 20px 70px}.view{display:none}.view.active{display:block}
+.hero{background:linear-gradient(135deg,#15296d,#315efb 55%,#7775ff);border-radius:24px;color:white;padding:26px;box-shadow:var(--shadow);margin-bottom:20px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.07);right:-100px;top:-150px}.hero h1{font-size:29px;margin:0 0 7px}.hero p{margin:0;color:#e7ebff;max-width:760px;line-height:1.5}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.grid{display:grid;gap:18px}.two{grid-template-columns:minmax(560px,1.25fr) minmax(330px,.75fr)}.stats{grid-template-columns:repeat(4,1fr)}.stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.stat b{display:block;font-size:28px;margin-top:5px}
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.pill{background:#f0f3fa;color:#58637a;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:850}.pill.live{background:#e5f8ef;color:#147c53}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:13px 0}
+
+/* CROSSWORD */
+.board-wrap{overflow:auto;padding:10px 0}.board{display:grid;gap:3px;width:max-content;margin:auto}.cell,.block{width:36px;height:36px;position:relative}.cell input{width:100%;height:100%;border:1px solid #d0d8e5;border-radius:6px;text-align:center;font-size:17px;font-weight:900;text-transform:uppercase;outline:none}.cell input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(40,87,255,.15);transform:scale(1.04)}.cell input.correct{background:#e7f8f0;border-color:#69d0a4}.cell input.wrong{background:#fff0f2;border-color:#ed97a5;animation:shake .2s}@keyframes shake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}.num{position:absolute;left:3px;top:1px;font-size:8px;font-weight:900;color:#68738a;pointer-events:none}.clue-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.clue-box{background:#f8f9fd;border:1px solid var(--line);border-radius:13px;padding:12px}.clue-box h4{margin:0 0 8px}.clue{font-size:12px;line-height:1.4;padding:7px 0;border-bottom:1px dashed #dce2ec}.clue:last-child{border:0}.clue b{color:var(--blue)}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:20px 0}.pod{width:30%;min-width:90px;text-align:center}.pod .person{background:white;border:1px solid var(--line);padding:9px 5px;border-radius:12px 12px 0 0;font-size:11px;box-shadow:var(--shadow)}.pod .base{color:white;font-weight:900;display:grid;place-items:center;border-radius:0 0 11px 11px}.p1 .base{height:95px;background:linear-gradient(#f6c649,#e7a70a)}.p2 .base{height:72px;background:linear-gradient(#bdc5d0,#8f9baa)}.p3 .base{height:55px;background:linear-gradient(#ce855d,#a9613e)}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:12px;text-align:left}.table th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.history-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.history{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.history h3{margin:2px 0 5px}.winner{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.winner:last-child{border:0}.medal{width:29px;height:29px;border-radius:50%;background:#f3f5fa;display:grid;place-items:center}
+
+/* ADMIN */
+.admin-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:18px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:11px}.word-row{display:grid;grid-template-columns:120px 1fr 40px;gap:7px;margin:7px 0}.word-row input{padding:8px;border:1px solid #d9e0ea;border-radius:8px}.iconbtn{border:0;background:#fff0f2;color:var(--red);border-radius:8px;font-weight:900;cursor:pointer}.preview-wrap{overflow:auto;background:#f8f9fc;border:1px solid var(--line);border-radius:13px;padding:13px}.preview{display:grid;gap:2px;width:max-content;margin:auto}.pcell,.pblock{width:26px;height:26px;position:relative}.pcell{background:#fff;border:1px solid #d3dae6;border-radius:3px;display:grid;place-items:center;font-size:10px;font-weight:900}.pnum{position:absolute;left:2px;top:1px;font-size:6px;color:#778198}
+.badge{padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900}.published{background:#e5f7ef;color:#14744f}.draft{background:#fff4dd;color:#936000}.archived{background:#edf0f4;color:#677083}
+.rank{display:grid;grid-template-columns:55px 1fr 110px;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+
+/* MISC */
+.empty{text-align:center;padding:26px;color:var(--muted);font-size:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,30px);background:#111a34;color:#fff;padding:11px 16px;border-radius:11px;opacity:0;transition:.2s;z-index:200;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}.confetti{position:fixed;top:-14px;width:8px;height:14px;z-index:210;animation:fall 2.7s linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.4}}
+@media(max-width:1000px){.login-shell{grid-template-columns:1fr}.login-brand{padding:34px}.login-brand h1{margin-top:30px}.two,.admin-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.history-grid{grid-template-columns:1fr 1fr}.header-main{flex-wrap:wrap}.timer-wrap{order:3;width:100%}}
+@media(max-width:650px){#loginScreen{padding:10px}.login-panel,.login-brand{padding:25px}.features,.stats,.history-grid,.clue-grid,.twocol{grid-template-columns:1fr}.login-brand h1{font-size:32px}.cell,.block{width:31px;height:31px}.word-row{grid-template-columns:90px 1fr 38px}.identity small{display:none}}
+</style>
+</head>
+<body>
+
+<section id="loginScreen">
+ <div class="login-shell">
+  <div class="login-brand">
+   <div class="logo">✦</div>
+   <div style="font-size:29px;font-weight:900;margin-top:19px">RCM Quest</div>
+   <div style="font-size:12px;color:#bdc9ff;margin-top:4px">HRC Training Gamification</div>
+   <h1>Learn RCM.<br>Compete. Win.</h1>
+   <p>One shared learning experience for HRC employees. Complete revenue-cycle crossword challenges, strengthen process knowledge, and compete for a place on the leaderboard.</p>
+   <div class="features"><div class="feature">⏱ Automatic challenge timer</div><div class="feature">🏆 Top 3 leaderboard</div><div class="feature">🧩 Bi-weekly RCM crosswords</div><div class="feature">📚 Challenge history</div></div>
+  </div>
+  <div class="login-panel"><div>
+   <div class="eyebrow">Single Access Portal</div>
+   <h2>Enter RCM Quest</h2>
+   <p class="sub">Enter your name and HRC email. The same login automatically opens either the Employee experience or the Admin Console.</p>
+   <div class="field"><label>Employee Name</label><input id="loginName" placeholder="Your full name"></div>
+   <div class="field"><label>HRC Email Address</label><input id="loginEmail" type="email" placeholder="name@healthreconconnect.com"></div>
+   <button class="btn full" id="loginBtn">Continue to RCM Quest →</button>
+   <div id="routeMsg" class="route"></div>
+   <div class="note"><b>Admin routing:</b> Shafeek Sadiq + shafeeks@healthreconconnect.com opens the Admin Console.<br><br><b>Employee routing:</b> Any other valid @healthreconconnect.com email opens the Crossword experience.</div>
+  </div></div>
+ </div>
+</section>
+
+<section id="appScreen" class="hidden">
+ <header class="header">
+  <div class="header-main">
+   <div class="brand"><div class="logo">✦</div><div><b>RCM Quest</b><small>HRC Training Gamification</small></div><span id="roleBadge" class="role-badge"></span></div>
+   <div class="timer-wrap" id="timerWrap"><div class="timer" id="timerBox"><span>Challenge Timer</span><strong id="timerText">00:00.00</strong></div></div>
+   <div class="identity"><div class="avatar" id="avatar">?</div><div><b id="identityName"></b><small id="identityEmail"></small></div><button class="btn gray" id="logoutBtn">Logout</button></div>
+  </div>
+  <div class="nav" id="mainNav"></div>
+ </header>
+
+ <main>
+  <!-- EMPLOYEE -->
+  <section id="employeeChallenge" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Bi-weekly learning challenge</div><h1 id="empHeroTitle">RCM Crossword Challenge</h1><p id="empHeroDesc">Complete the challenge accurately and race for a Top 3 position.</p></div>
+   <div class="grid two">
+    <div class="card">
+     <div class="eyebrow">Current Challenge</div><h2 id="empChallengeTitle">Loading…</h2><div class="sub" id="empMeta"></div>
+     <div class="pills"><span class="pill live">● LIVE</span><span id="empTopic" class="pill">RCM</span><span class="pill">Timer starts with first letter</span></div>
+     <div class="board-wrap"><div id="board" class="board"></div></div>
+     <div class="toolbar"><button class="btn" id="checkBtn">Check Answers</button><button class="btn alt" id="clearBtn">Clear Grid</button></div>
+    </div>
+    <div>
+     <div class="card"><h3 style="margin-top:0">Clues</h3><p class="sub">Complete all cells correctly to stop the timer.</p><div class="clue-grid"><div class="clue-box"><h4>Across</h4><div id="across"></div></div><div class="clue-box"><h4>Down</h4><div id="down"></div></div></div></div>
+     <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Top 3 – Current Challenge</h3><div id="miniPodium"></div></div>
+    </div>
+   </div>
+  </section>
+
+  <section id="employeeHistory" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Hall of Fame</div><h1>Weekly Challenges</h1><p>Previous RCM Quest rounds and their Top 3 winners stay visible here.</p></div>
+   <div id="historyGrid" class="history-grid"></div>
+  </section>
+
+  <section id="employeeLeaderboard" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Speed + Accuracy</div><h1>Current Leaderboard</h1><p>Rankings are based on the fastest correctly completed crossword.</p></div>
+   <div class="card"><div id="fullPodium"></div><table class="table"><thead><tr><th>Rank</th><th>Employee</th><th>Completion Time</th></tr></thead><tbody id="leaderRows"></tbody></table></div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="adminDashboard" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Administration</div><h1>RCM Quest Admin Dashboard</h1><p>Create, manage and publish RCM training challenges from the same website.</p></div>
+   <div class="grid stats"><div class="card stat"><span>Total Challenges</span><b id="statTotal">0</b></div><div class="card stat"><span>Published</span><b id="statPublished">0</b></div><div class="card stat"><span>Recorded Completions</span><b id="statPlayers">0</b></div><div class="card stat"><span>Current Topic</span><b id="statTopic" style="font-size:18px">—</b></div></div>
+   <div class="card" style="margin-top:18px"><h3 style="margin-top:0">Current Published Challenge</h3><div id="currentAdminSummary"></div></div>
+  </section>
+
+  <section id="adminChallenges" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Challenge Management</div><h1>Challenges</h1><p>Create the next round, edit current content or retain older challenges for winner history.</p></div>
+   <div class="card"><div class="toolbar"><button class="btn" id="createChallengeBtn">+ Create New Challenge</button></div><table class="table"><thead><tr><th>Challenge</th><th>Topic</th><th>Dates</th><th>Status</th><th>Terms</th><th>Actions</th></tr></thead><tbody id="challengeRows"></tbody></table></div>
+  </section>
+
+  <section id="adminEditor" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Challenge Builder</div><h1>Crossword Editor</h1><p>Add the RCM topic, terms and clues, generate the crossword, preview it and publish when ready.</p></div>
+   <div class="admin-grid">
+    <div class="card">
+     <input type="hidden" id="editId">
+     <div class="twocol"><div class="field"><label>Challenge Label</label><input id="editLabel" placeholder="Challenge 03"></div><div class="field"><label>Status</label><select id="editStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div></div>
+     <div class="field"><label>Title</label><input id="editTitle" placeholder="Claims & Denials Challenge"></div>
+     <div class="field"><label>Topic / Theme</label><input id="editTopic" placeholder="Denial Management"></div>
+     <div class="field"><label>Description</label><textarea id="editDescription" placeholder="Short employee-facing description"></textarea></div>
+     <div class="twocol"><div class="field"><label>Start Date</label><input type="date" id="editStart"></div><div class="field"><label>End Date</label><input type="date" id="editEnd"></div></div>
+     <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3 style="margin:0">RCM Terms & Clues</h3><div class="sub">Use a single word/abbreviation for the crossword answer.</div></div><button class="btn alt" id="addTermBtn">+ Term</button></div>
+     <div id="termRows"></div>
+     <div class="toolbar"><button class="btn alt" id="generateBtn">Generate / Refresh Layout</button><button class="btn" id="saveBtn">Save Challenge</button><button class="btn green" id="publishBtn">Publish</button></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0">Crossword Preview</h3><div class="preview-wrap"><div id="preview" class="preview"></div></div><div id="previewClues" class="sub" style="margin-top:12px"></div></div>
+   </div>
+  </section>
+
+  <section id="adminResults" class="view">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Performance Review</div><h1>Leaderboard Management</h1><p>Review completion times by challenge or reset a leaderboard when required.</p></div>
+   <div class="card"><div class="toolbar"><select id="resultSelect" style="padding:10px;border:1px solid var(--line);border-radius:10px"></select><button class="btn alt" id="loadResultsBtn">Load Leaderboard</button><button class="btn red" id="resetResultsBtn">Reset Selected Leaderboard</button></div><div id="adminResultsList"></div></div>
+  </section>
+ </main>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================================================
+   RCM QUEST v7 - SELF-CONTAINED PROTOTYPE
+   ========================================================= */
+const CONFIG={
+  ADMIN_NAME:"Shafeek Sadiq",
+  ADMIN_EMAIL:"shafeeks@healthreconconnect.com",
+  DOMAIN:"healthreconconnect.com"
+};
+
+const DEFAULT_CHALLENGES=[
+ {id:"c02",label:"Challenge 02",title:"RCM Foundations",topic:"Revenue Cycle Fundamentals",
+  description:"Core terminology across claims, denials, payments and payer workflows.",
+  starts_on:"2026-10-19",ends_on:"2026-11-01",status:"published",
+  entries:[
+   {answer:"CLAIM",clue:"A request submitted to a payer for reimbursement.",direction:"across",row:5,col:3,number:1},
+   {answer:"DENIAL",clue:"A payer decision not to reimburse a claim as billed.",direction:"down",row:3,col:5,number:2},
+   {answer:"CODING",clue:"Translating clinical documentation into standardized codes.",direction:"across",row:8,col:2,number:3},
+   {answer:"APPEAL",clue:"A formal request asking a payer to reconsider an adverse decision.",direction:"down",row:5,col:7,number:4},
+   {answer:"CHARGE",clue:"The amount entered for a healthcare service before adjudication.",direction:"across",row:11,col:3,number:5},
+   {answer:"PAYER",clue:"The entity responsible for adjudicating and reimbursing covered claims.",direction:"down",row:8,col:9,number:6},
+   {answer:"POSTING",clue:"Recording payments, adjustments and remittance information.",direction:"across",row:14,col:2,number:7},
+   {answer:"AR",clue:"Common abbreviation for Accounts Receivable.",direction:"down",row:13,col:5,number:8}
+  ]},
+ {id:"c01",label:"Challenge 01",title:"Denial Detectives",topic:"Denial Management",description:"Previous challenge",starts_on:"2026-10-05",ends_on:"2026-10-18",status:"archived",entries:[
+   {answer:"DENIAL",clue:"A payer decision not to reimburse a submitted claim.",direction:"across",row:4,col:2,number:1},
+   {answer:"APPEAL",clue:"A request for reconsideration.",direction:"down",row:2,col:4,number:2}
+ ]}
+];
+const SEEDED_HISTORY={
+ c01:[
+  {display_name:"N. Perera",email:"n.perera@healthreconconnect.com",elapsed_ms:84220},
+  {display_name:"A. Fernando",email:"a.fernando@healthreconconnect.com",elapsed_ms:91360},
+  {display_name:"S. Kumar",email:"s.kumar@healthreconconnect.com",elapsed_ms:100510}
+ ]
+};
+
+let session=null,currentChallenge=null,currentEntries=[],cellMap=new Map(),timerInterval=null,startMs=null,finished=false,layoutEntries=[];
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function fmt(ms){ms=Math.max(0,Number(ms)||0);const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000),h=Math.floor((ms%1000)/10);return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${String(h).padStart(2,"0")}`}
+function challenges(){return JSON.parse(localStorage.getItem("rcmq-v7-challenges")||"null")||structuredClone(DEFAULT_CHALLENGES)}
+function saveChallenges(v){localStorage.setItem("rcmq-v7-challenges",JSON.stringify(v))}
+function results(){return JSON.parse(localStorage.getItem("rcmq-v7-results")||"[]")}
+function saveResults(v){localStorage.setItem("rcmq-v7-results",JSON.stringify(v))}
+function validHrcEmail(email){return email.toLowerCase().endsWith("@"+CONFIG.DOMAIN)}
+function isAdmin(name,email){return name.trim().toLowerCase()===CONFIG.ADMIN_NAME.toLowerCase()&&email.trim().toLowerCase()===CONFIG.ADMIN_EMAIL.toLowerCase()}
+
+function login(){
+ const name=document.getElementById("loginName").value.trim();
+ const email=document.getElementById("loginEmail").value.trim().toLowerCase();
+ const msg=document.getElementById("routeMsg");
+ if(name.length<2){msg.textContent="Please enter your full name.";msg.className="route show error";return}
+ if(!validHrcEmail(email)){msg.textContent="Please enter a valid HRC email address.";msg.className="route show error";return}
+ session={name,email,role:isAdmin(name,email)?"admin":"employee"};
+ sessionStorage.setItem("rcmq-v7-session",JSON.stringify(session));
+ msg.textContent=session.role==="admin"?"Administrator recognized. Opening Admin Console…":"Employee access confirmed. Opening the current challenge…";
+ msg.className="route show "+(session.role==="admin"?"admin":"user");
+ setTimeout(enterApp,350);
+}
+document.getElementById("loginBtn").onclick=login;
+["loginName","loginEmail"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")login()}));
+
+function enterApp(){
+ if(!session)return;
+ document.getElementById("loginScreen").classList.add("hidden");
+ document.getElementById("appScreen").classList.remove("hidden");
+ document.getElementById("identityName").textContent=session.name;
+ document.getElementById("identityEmail").textContent=session.email;
+ document.getElementById("avatar").textContent=session.name[0].toUpperCase();
+ document.getElementById("roleBadge").textContent=session.role==="admin"?"ADMIN":"EMPLOYEE";
+ document.getElementById("timerWrap").classList.toggle("hidden",session.role==="admin");
+ buildNav();
+ if(session.role==="admin"){loadAdmin();openView("adminDashboard")}
+ else{loadCurrentChallenge();openView("employeeChallenge")}
+}
+function logout(){sessionStorage.removeItem("rcmq-v7-session");session=null;stopTimer();document.getElementById("appScreen").classList.add("hidden");document.getElementById("loginScreen").classList.remove("hidden");document.getElementById("routeMsg").className="route";document.getElementById("loginName").value="";document.getElementById("loginEmail").value=""}
+document.getElementById("logoutBtn").onclick=logout;
+
+function buildNav(){
+ const nav=document.getElementById("mainNav");nav.innerHTML="";
+ const items=session.role==="admin" ? [
+   ["Dashboard","adminDashboard"],["Challenges","adminChallenges"],["Challenge Editor","adminEditor"],["Leaderboards","adminResults"]
+ ] : [
+   ["Current Challenge","employeeChallenge"],["Weekly Challenges","employeeHistory"],["Leaderboard","employeeLeaderboard"]
+ ];
+ items.forEach(([label,id])=>{const b=document.createElement("button");b.textContent=label;b.dataset.view=id;b.onclick=()=>openView(id);nav.appendChild(b)})
+}
+function openView(id){
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+ document.querySelectorAll("#mainNav button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
+ if(id==="employeeLeaderboard")renderLeaderboard();
+ if(id==="employeeHistory")renderHistory();
+ if(id==="adminChallenges")renderAdminChallenges();
+ if(id==="adminResults"){fillResultsSelect();loadAdminResults()}
+}
+
+/* ---------------- EMPLOYEE ---------------- */
+function loadCurrentChallenge(){
+ const list=challenges();
+ currentChallenge=list.find(x=>x.status==="published")||null;
+ if(!currentChallenge){document.getElementById("empChallengeTitle").textContent="No active challenge";document.getElementById("board").innerHTML='<div class="empty">The next RCM Quest challenge will appear here once published.</div>';return}
+ currentEntries=currentChallenge.entries||[];
+ document.getElementById("empHeroTitle").textContent=currentChallenge.title;
+ document.getElementById("empHeroDesc").textContent=currentChallenge.description||"Complete the crossword accurately and race for a Top 3 position.";
+ document.getElementById("empChallengeTitle").textContent=currentChallenge.title;
+ document.getElementById("empMeta").textContent=`${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
+ document.getElementById("empTopic").textContent=currentChallenge.topic||"RCM";
+ buildBoard();renderClues();renderLeaderboard();
+}
+function key(r,c){return `${r}:${c}`}
+function buildBoard(){
+ stopTimer();startMs=null;finished=false;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
+ const cells=new Map(),nums=new Map();
+ currentEntries.forEach(e=>{[...e.answer.toUpperCase()].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(key(r,c),ch)});nums.set(key(e.row,e.col),e.number)});
+ const board=document.getElementById("board");board.innerHTML="";
+ if(!cells.size){board.innerHTML='<div class="empty">Challenge content is being prepared.</div>';return}
+ const coords=[...cells.keys()].map(k=>k.split(":").map(Number)),minR=Math.min(...coords.map(x=>x[0])),maxR=Math.max(...coords.map(x=>x[0])),minC=Math.min(...coords.map(x=>x[1])),maxC=Math.max(...coords.map(x=>x[1]));
+ board.style.gridTemplateColumns=`repeat(${maxC-minC+1},36px)`;
+ for(let r=minR;r<=maxR;r++)for(let c=minC;c<=maxC;c++){
+  const k=key(r,c),wrap=document.createElement("div");
+  if(cells.has(k)){wrap.className="cell";const i=document.createElement("input");i.maxLength=1;i.dataset.expected=cells.get(k);i.oninput=e=>{e.target.value=e.target.value.replace(/[^a-z0-9]/ig,"").toUpperCase();e.target.classList.remove("wrong","correct");if(e.target.value&&!startMs)startTimer();if(allFilled())checkPuzzle(true)};wrap.appendChild(i);cellMap.set(k,i);if(nums.has(k)){const n=document.createElement("span");n.className="num";n.textContent=nums.get(k);wrap.appendChild(n)}}else wrap.className="block";
+  board.appendChild(wrap)
+ }
+}
+function renderClues(){["across","down"].forEach(dir=>{const box=document.getElementById(dir);box.innerHTML="";currentEntries.filter(e=>e.direction===dir).sort((a,b)=>a.number-b.number).forEach(e=>{const d=document.createElement("div");d.className="clue";d.innerHTML=`<b>${e.number}.</b> ${esc(e.clue)}`;box.appendChild(d)})})}
+function startTimer(){startMs=Date.now();document.getElementById("timerBox").classList.add("running");timerInterval=setInterval(()=>document.getElementById("timerText").textContent=fmt(Date.now()-startMs),35)}
+function stopTimer(){clearInterval(timerInterval);timerInterval=null;document.getElementById("timerBox").classList.remove("running")}
+function allFilled(){return [...cellMap.values()].every(i=>i.value)}
+function checkPuzzle(auto=false){
+ if(!startMs&&!auto)return toast("Start entering the crossword first.");
+ let ok=true;cellMap.forEach(i=>{const good=i.value===i.dataset.expected;i.classList.toggle("correct",good&&!!i.value);i.classList.toggle("wrong",!good&&!!i.value);if(!good)ok=false});
+ if(!ok){if(!auto)toast("Not quite yet — check the highlighted cells.");return}
+ if(finished)return;finished=true;const elapsed=Date.now()-startMs;stopTimer();document.getElementById("timerText").textContent=fmt(elapsed);
+ const all=results(),existing=all.find(x=>x.challenge_id===currentChallenge.id&&x.email===session.email);
+ if(!existing)all.push({challenge_id:currentChallenge.id,display_name:session.name,email:session.email,elapsed_ms:elapsed});
+ else if(elapsed<existing.elapsed_ms){existing.display_name=session.name;existing.elapsed_ms=elapsed}
+ saveResults(all);confetti();toast("Challenge complete! Your time has been recorded.");renderLeaderboard()
+}
+document.getElementById("checkBtn").onclick=()=>checkPuzzle(false);
+document.getElementById("clearBtn").onclick=()=>cellMap.forEach(i=>{i.value="";i.classList.remove("wrong","correct")});
+function challengeResults(id){
+ const local=results().filter(x=>x.challenge_id===id);
+ const seed=SEEDED_HISTORY[id]||[];
+ const m=new Map();[...seed,...local].forEach(x=>{const k=(x.email||x.display_name).toLowerCase();if(!m.has(k)||x.elapsed_ms<m.get(k).elapsed_ms)m.set(k,x)});
+ return [...m.values()].sort((a,b)=>a.elapsed_ms-b.elapsed_ms)
+}
+function podium(rows){const t=rows.slice(0,3),order=[t[1],t[0],t[2]],cls=["p2","p1","p3"],med=["🥈","🥇","🥉"];if(!t.length)return '<div class="empty">No completions yet. Be the first!</div>';return `<div class="podium">${order.map((r,i)=>r?`<div class="pod ${cls[i]}"><div class="person">${med[i]}<br><b>${esc(r.display_name)}</b><div class="sub">${fmt(r.elapsed_ms)}</div></div><div class="base">${i===1?1:i===0?2:3}</div></div>`:"").join("")}</div>`}
+function renderLeaderboard(){if(!currentChallenge)return;const rows=challengeResults(currentChallenge.id);document.getElementById("miniPodium").innerHTML=podium(rows);document.getElementById("fullPodium").innerHTML=podium(rows);document.getElementById("leaderRows").innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.display_name)}</b></td><td>${fmt(r.elapsed_ms)}</td></tr>`).join("")||'<tr><td colspan="3">No completions yet.</td></tr>'}
+function renderHistory(){
+ const old=challenges().filter(x=>x.status==="archived");
+ document.getElementById("historyGrid").innerHTML=old.map(c=>{const w=challengeResults(c.id).slice(0,3);return `<div class="history"><div class="eyebrow">${esc(c.label)}</div><h3>${esc(c.title)}</h3><div class="sub">${esc(c.topic)}</div><div style="margin-top:10px">${w.map((x,i)=>`<div class="winner"><div class="medal">${["🥇","🥈","🥉"][i]}</div><div><b>${esc(x.display_name)}</b><div class="sub">${fmt(x.elapsed_ms)}</div></div></div>`).join("")||'<div class="sub">No recorded winners.</div>'}</div></div>`}).join("")||'<div class="empty">No previous challenges yet.</div>'
+}
+function confetti(){const colors=["#2857ff","#efb429","#159466","#ff5d7d","#8b65ff"];for(let i=0;i<70;i++){const x=document.createElement("i");x.className="confetti";x.style.left=Math.random()*100+"vw";x.style.background=colors[i%colors.length];x.style.animationDelay=Math.random()*.45+"s";document.body.appendChild(x);setTimeout(()=>x.remove(),3200)}}
+
+/* ---------------- ADMIN ---------------- */
+function loadAdmin(){renderAdminDashboard();renderAdminChallenges();fillResultsSelect()}
+function renderAdminDashboard(){
+ const list=challenges(),cur=list.find(x=>x.status==="published"),all=results();
+ document.getElementById("statTotal").textContent=list.length;document.getElementById("statPublished").textContent=list.filter(x=>x.status==="published").length;document.getElementById("statPlayers").textContent=all.length;document.getElementById("statTopic").textContent=cur?.topic||"—";
+ document.getElementById("currentAdminSummary").innerHTML=cur?`<div style="padding:8px 0"><b>${esc(cur.label)} — ${esc(cur.title)}</b><div class="sub">${esc(cur.topic)} • ${cur.starts_on} to ${cur.ends_on} • ${(cur.entries||[]).length} terms</div><div class="toolbar"><button class="btn alt" onclick="editChallenge('${cur.id}')">Edit Current Challenge</button><button class="btn" onclick="newChallenge()">+ New Challenge</button></div></div>`:'<div class="empty">No published challenge. Create or publish a challenge.</div>'
+}
+function renderAdminChallenges(){
+ document.getElementById("challengeRows").innerHTML=challenges().map(c=>`<tr><td><b>${esc(c.label)}</b><br>${esc(c.title)}</td><td>${esc(c.topic)}</td><td>${c.starts_on}<br>${c.ends_on}</td><td><span class="badge ${c.status}">${c.status}</span></td><td>${(c.entries||[]).length}</td><td><button class="btn alt" onclick="editChallenge('${c.id}')">Edit</button> <button class="btn red" onclick="deleteChallenge('${c.id}')">Delete</button></td></tr>`).join("")
+}
+document.getElementById("createChallengeBtn").onclick=newChallenge;
+function newChallenge(){
+ openView("adminEditor");document.getElementById("editId").value="";document.getElementById("editLabel").value=`Challenge ${String(challenges().length+1).padStart(2,"0")}`;document.getElementById("editStatus").value="draft";document.getElementById("editTitle").value="";document.getElementById("editTopic").value="";document.getElementById("editDescription").value="";document.getElementById("editStart").value="";document.getElementById("editEnd").value="";document.getElementById("termRows").innerHTML="";for(let i=0;i<6;i++)addTerm();layoutEntries=[];renderPreview()
+}
+function editChallenge(id){
+ const c=challenges().find(x=>x.id===id);if(!c)return;openView("adminEditor");
+ document.getElementById("editId").value=c.id;document.getElementById("editLabel").value=c.label;document.getElementById("editStatus").value=c.status;document.getElementById("editTitle").value=c.title;document.getElementById("editTopic").value=c.topic;document.getElementById("editDescription").value=c.description||"";document.getElementById("editStart").value=c.starts_on;document.getElementById("editEnd").value=c.ends_on;document.getElementById("termRows").innerHTML="";(c.entries||[]).forEach(e=>addTerm(e.answer,e.clue));layoutEntries=structuredClone(c.entries||[]);renderPreview()
+}
+function addTerm(a="",c=""){const r=document.createElement("div");r.className="word-row";r.innerHTML=`<input class="term-answer" placeholder="ANSWER" value="${esc(a)}"><input class="term-clue" placeholder="Clue shown to employees" value="${esc(c)}"><button class="iconbtn">×</button>`;r.querySelector("button").onclick=()=>r.remove();document.getElementById("termRows").appendChild(r)}
+document.getElementById("addTermBtn").onclick=()=>addTerm();
+function formWords(){return [...document.querySelectorAll(".word-row")].map(r=>({answer:r.querySelector(".term-answer").value.toUpperCase().replace(/[^A-Z0-9]/g,""),clue:r.querySelector(".term-clue").value.trim()})).filter(x=>x.answer.length>=2&&x.clue)}
+function occupied(entries){const m=new Map();entries.forEach(e=>[...e.answer].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);m.set(`${r}:${c}`,ch)}));return m}
+function canPlace(word,row,col,dir,placed){const m=occupied(placed);let cross=0;for(let i=0;i<word.length;i++){const r=row+(dir==="down"?i:0),c=col+(dir==="across"?i:0);if(r<0||c<0||r>40||c>40)return false;const k=`${r}:${c}`;if(m.has(k)){if(m.get(k)!==word[i])return false;cross++}}return placed.length===0||cross>0}
+function generateLayout(){
+ const words=formWords().sort((a,b)=>b.answer.length-a.answer.length);if(words.length<2)return toast("Add at least two terms and clues.");
+ const placed=[{...words[0],direction:"across",row:12,col:9,number:1}];
+ for(const item of words.slice(1)){let done=false;outer:for(const p of placed){for(let wi=0;wi<item.answer.length;wi++)for(let pi=0;pi<p.answer.length;pi++){if(item.answer[wi]!==p.answer[pi])continue;const dir=p.direction==="across"?"down":"across",cr=p.row+(p.direction==="down"?pi:0),cc=p.col+(p.direction==="across"?pi:0),row=cr-(dir==="down"?wi:0),col=cc-(dir==="across"?wi:0);if(canPlace(item.answer,row,col,dir,placed)){placed.push({...item,direction:dir,row,col,number:0});done=true;break outer}}}if(!done){const row=16+placed.length*2,col=3;placed.push({...item,direction:"across",row,col,number:0})}}
+ const starts=[...new Set(placed.map(e=>`${e.row}:${e.col}`))].map(x=>x.split(":").map(Number)).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),nums=new Map(starts.map((x,i)=>[`${x[0]}:${x[1]}`,i+1]));placed.forEach(e=>e.number=nums.get(`${e.row}:${e.col}`));
+ layoutEntries=placed;renderPreview();toast("Crossword layout generated.")
+}
+document.getElementById("generateBtn").onclick=generateLayout;
+function renderPreview(){
+ const box=document.getElementById("preview"),cl=document.getElementById("previewClues");box.innerHTML="";cl.innerHTML="";
+ if(!layoutEntries.length){box.innerHTML='<div class="empty">Add terms and select Generate Layout.</div>';return}
+ const cells=new Map(),nums=new Map();layoutEntries.forEach(e=>{[...e.answer].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(`${r}:${c}`,ch)});nums.set(`${e.row}:${e.col}`,e.number)});
+ const coords=[...cells.keys()].map(k=>k.split(":").map(Number)),minR=Math.min(...coords.map(x=>x[0])),maxR=Math.max(...coords.map(x=>x[0])),minC=Math.min(...coords.map(x=>x[1])),maxC=Math.max(...coords.map(x=>x[1]));box.style.gridTemplateColumns=`repeat(${maxC-minC+1},26px)`;
+ for(let r=minR;r<=maxR;r++)for(let c=minC;c<=maxC;c++){const k=`${r}:${c}`,d=document.createElement("div");if(cells.has(k)){d.className="pcell";d.textContent=cells.get(k);if(nums.has(k)){const n=document.createElement("span");n.className="pnum";n.textContent=nums.get(k);d.appendChild(n)}}else d.className="pblock";box.appendChild(d)}
+ cl.innerHTML="<b>Across:</b> "+layoutEntries.filter(x=>x.direction==="across").map(x=>`${x.number}. ${esc(x.clue)}`).join(" • ")+"<br><br><b>Down:</b> "+layoutEntries.filter(x=>x.direction==="down").map(x=>`${x.number}. ${esc(x.clue)}`).join(" • ")
+}
+function payload(statusOverride=null){
+ if(!layoutEntries.length)generateLayout();
+ return{id:document.getElementById("editId").value||("c"+Date.now()),label:document.getElementById("editLabel").value.trim(),title:document.getElementById("editTitle").value.trim(),topic:document.getElementById("editTopic").value.trim(),description:document.getElementById("editDescription").value.trim(),starts_on:document.getElementById("editStart").value,ends_on:document.getElementById("editEnd").value,status:statusOverride||document.getElementById("editStatus").value,entries:layoutEntries}
+}
+function saveChallenge(statusOverride=null){
+ const p=payload(statusOverride);if(!p.label||!p.title||!p.topic||!p.starts_on||!p.ends_on)return toast("Complete the title, topic and dates.");if((p.entries||[]).length<2)return toast("Add at least two crossword terms.");
+ const list=challenges();if(p.status==="published")list.forEach(x=>{if(x.id!==p.id&&x.status==="published")x.status="archived"});const i=list.findIndex(x=>x.id===p.id);if(i>=0)list[i]=p;else list.unshift(p);saveChallenges(list);document.getElementById("editId").value=p.id;toast(p.status==="published"?"Challenge published.":"Challenge saved.");loadAdmin();if(p.status==="published")currentChallenge=p
+}
+document.getElementById("saveBtn").onclick=()=>saveChallenge();document.getElementById("publishBtn").onclick=()=>{if(confirm("Publish this challenge for employees now?"))saveChallenge("published")};
+function deleteChallenge(id){if(!confirm("Delete this challenge?"))return;saveChallenges(challenges().filter(x=>x.id!==id));saveResults(results().filter(x=>x.challenge_id!==id));toast("Challenge deleted.");loadAdmin();renderAdminChallenges()}
+function fillResultsSelect(){document.getElementById("resultSelect").innerHTML=challenges().map(c=>`<option value="${c.id}">${esc(c.label)} — ${esc(c.title)}</option>`).join("")}
+function loadAdminResults(){const id=document.getElementById("resultSelect").value,rows=challengeResults(id);document.getElementById("adminResultsList").innerHTML=rows.map((r,i)=>`<div class="rank"><b>#${i+1}</b><div><b>${esc(r.display_name)}</b><br><span class="sub">${esc(r.email||"")}</span></div><b>${fmt(r.elapsed_ms)}</b></div>`).join("")||'<div class="empty">No completions recorded for this challenge.</div>'}
+document.getElementById("loadResultsBtn").onclick=loadAdminResults;
+document.getElementById("resetResultsBtn").onclick=()=>{const id=document.getElementById("resultSelect").value;if(!confirm("Reset all recorded results for this challenge?"))return;saveResults(results().filter(x=>x.challenge_id!==id));toast("Leaderboard reset.");loadAdminResults();renderAdminDashboard()}
+
+/* Restore session only within the current browser tab */
+(function init(){
+ const saved=JSON.parse(sessionStorage.getItem("rcmq-v7-session")||"null");
+ if(saved&&saved.name&&saved.email){session=saved;enterApp()}
+})();
+</script>
+</body>
+</html>
