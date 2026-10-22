@@ -64,6 +64,78 @@ main{max-width:1450px;margin:auto;padding:25px 20px 70px}.view{display:none}.vie
 .empty{text-align:center;padding:26px;color:var(--muted);font-size:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,30px);background:#111a34;color:#fff;padding:11px 16px;border-radius:11px;opacity:0;transition:.2s;z-index:200;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}.confetti{position:fixed;top:-14px;width:8px;height:14px;z-index:210;animation:fall 2.7s linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.4}}
 @media(max-width:1000px){.login-shell{grid-template-columns:1fr}.login-brand{padding:34px}.login-brand h1{margin-top:30px}.two,.admin-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.history-grid{grid-template-columns:1fr 1fr}.header-main{flex-wrap:wrap}.timer-wrap{order:3;width:100%}}
 @media(max-width:650px){#loginScreen{padding:10px}.login-panel,.login-brand{padding:25px}.features,.stats,.history-grid,.clue-grid,.twocol{grid-template-columns:1fr}.login-brand h1{font-size:32px}.cell,.block{width:31px;height:31px}.word-row{grid-template-columns:90px 1fr 38px}.identity small{display:none}}
+
+/* =========================================================
+   UI REFRESH — adapted from the supplied Crossword Design
+   Visual-only theme overrides; existing application structure retained.
+   ========================================================= */
+:root{
+ --ink:#f6f8ff;--muted:#a9b7cd;--bg:#07111f;--card:rgba(13,28,51,.82);--line:rgba(255,255,255,.10);
+ --blue:#4b7cff;--blue2:#a66cff;--nav:#07111f;--green:#8eff9b;--red:#ff6f91;
+ --amber:#ffd75a;--gold:#ffd75a;--silver:#dbe6f4;--bronze:#eaa36a;
+ --cyan:#55e6ff;--violet:#a66cff;--shadow:0 24px 80px rgba(0,0,0,.35)
+}
+html{scroll-behavior:smooth}
+body{color:var(--ink);background:
+ radial-gradient(circle at 10% 10%,rgba(75,124,255,.22),transparent 30%),
+ radial-gradient(circle at 88% 18%,rgba(166,108,255,.18),transparent 26%),
+ radial-gradient(circle at 40% 90%,rgba(85,230,255,.12),transparent 28%),
+ linear-gradient(145deg,#07111f,#0c1830);min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent);animation:gridDrift 18s linear infinite;z-index:-1}
+body:after{content:"";position:fixed;width:260px;height:260px;border-radius:50%;right:-70px;top:14%;background:rgba(166,108,255,.11);filter:blur(2px);pointer-events:none;animation:floatOrb 8s ease-in-out infinite alternate;z-index:-1}
+@keyframes gridDrift{to{background-position:34px 34px}}
+@keyframes floatOrb{to{transform:translate3d(-20px,28px,0) scale(1.08)}}
+#loginScreen{background:transparent}
+.login-shell{background:rgba(8,20,38,.92);border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow);backdrop-filter:blur(20px)}
+.login-brand{background:linear-gradient(145deg,#0b1730,#173887 58%,#4b7cff)}
+.login-brand:after{background:radial-gradient(circle,rgba(85,230,255,.24),transparent 64%);animation:halo 5s ease-in-out infinite alternate}
+.login-panel{background:linear-gradient(160deg,rgba(19,39,70,.96),rgba(9,21,39,.96));color:var(--ink)}
+.login-panel h2,.field label{color:#f6f8ff}.sub{color:var(--muted)}
+.note{background:rgba(255,255,255,.045);border-color:var(--line);color:#aebbd0}
+.logo{background:linear-gradient(135deg,var(--cyan),var(--blue),var(--violet));box-shadow:0 0 34px rgba(85,230,255,.20);animation:logoPulse 3s ease-in-out infinite}
+@keyframes logoPulse{50%{transform:rotate(4deg) scale(1.05);box-shadow:0 0 46px rgba(85,230,255,.36)}}
+@keyframes halo{to{transform:translate(-30px,25px) scale(1.15)}}
+.header{background:rgba(7,17,31,.88);border-bottom-color:var(--line);backdrop-filter:blur(18px)}
+.brand b,.identity b{color:#fff}.brand small,.identity small{color:var(--muted)}
+.avatar{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff}
+.role-badge{background:rgba(85,230,255,.10);color:var(--cyan);border:1px solid rgba(85,230,255,.16)}
+.nav button{color:#aebbd0}.nav button:hover{background:rgba(255,255,255,.05);color:#fff}.nav button.active{background:rgba(85,230,255,.09);color:var(--cyan)}
+main{position:relative;z-index:1}
+.hero{background:linear-gradient(120deg,rgba(75,124,255,.24),rgba(166,108,255,.14) 50%,rgba(85,230,255,.10));border:1px solid var(--line);box-shadow:var(--shadow);padding:32px;border-radius:28px}
+.hero:after{background:radial-gradient(circle,rgba(85,230,255,.24),transparent 65%);animation:halo 5s ease-in-out infinite alternate}
+.hero h1{font-size:clamp(28px,4vw,46px);letter-spacing:-1px}.hero p{color:#c3cee1}
+.eyebrow{color:var(--cyan)!important;letter-spacing:.16em}
+.card,.history{background:rgba(13,28,51,.80);border-color:var(--line);backdrop-filter:blur(20px);box-shadow:var(--shadow)}
+.pill{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#dfe7f5}.pill.live{background:rgba(142,255,155,.10);color:var(--green);border-color:rgba(142,255,155,.20)}
+.btn{background:linear-gradient(135deg,var(--blue),var(--violet));box-shadow:0 8px 24px rgba(75,124,255,.20);transition:.2s}.btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(75,124,255,.32)}
+.btn.alt,.btn.gray{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#d8e2f1;box-shadow:none}.btn.green{background:rgba(142,255,155,.12);color:#b8ffc1;border:1px solid rgba(142,255,155,.20)}.btn.red{background:rgba(255,111,145,.10);color:#ff9bb2;border:1px solid rgba(255,111,145,.18)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.field input,.field textarea,.field select,.word-row input,#resultSelect{background:rgba(255,255,255,.06)!important;color:#f6f8ff!important;border-color:var(--line)!important}.field input::placeholder,.field textarea::placeholder,.word-row input::placeholder{color:#718099}.field input:focus,.field textarea:focus,.field select:focus,.word-row input:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 3px rgba(85,230,255,.08)!important}
+select option{background:#10213d;color:#fff}
+.timer-wrap .timer{background:rgba(6,17,32,.76);border:1px solid var(--line);box-shadow:0 0 34px rgba(85,230,255,.10);backdrop-filter:blur(14px)}
+.timer-wrap .timer strong{background:linear-gradient(90deg,#fff,var(--cyan),#d4c4ff);-webkit-background-clip:text;background-clip:text;color:transparent}.timer-wrap .timer.running{animation:timerPulse 1s ease-in-out infinite}
+@keyframes timerPulse{50%{filter:drop-shadow(0 0 11px rgba(85,230,255,.55));transform:scale(1.015)}}
+.board-wrap{padding:18px 0}.board{gap:3px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.25))}
+.cell,.block{width:42px;height:42px}.cell{border-radius:7px;transition:.18s ease}.cell input{border:2px solid rgba(128,174,218,.35);border-radius:7px;background:#f7fbff;color:#12223a;font-size:20px;transition:.18s ease;caret-color:var(--blue);padding-top:3px}.cell:hover{transform:translateY(-2px)}.cell:hover input{box-shadow:0 7px 18px rgba(85,230,255,.18)}
+.cell.active-word input{box-shadow:inset 0 0 0 3px rgba(85,230,255,.45);border-color:rgba(85,230,255,.65)}
+.cell input:focus{background:#eafcff;border-color:var(--cyan);box-shadow:inset 0 0 0 2px var(--cyan),0 0 18px rgba(85,230,255,.22);transform:scale(1.04)}
+.cell input.typed{animation:letterPop .32s cubic-bezier(.2,.85,.35,1.25)}
+.cell input.correct{background:#edfff2;border-color:#8eff9b;animation:cellPop .42s ease}.cell input.wrong{background:#fff0f4;border-color:#ff86a2;animation:shake .35s linear}
+.cell input:disabled{opacity:.72;cursor:not-allowed}.board.attempt-locked{filter:grayscale(.08) drop-shadow(0 18px 30px rgba(0,0,0,.25))}
+@keyframes letterPop{50%{transform:scale(1.13);box-shadow:0 0 20px rgba(85,230,255,.34)}}
+@keyframes cellPop{50%{transform:scale(1.09)}}
+.clue-box{background:rgba(6,17,32,.42);border-color:var(--line)}.clue-box h4{color:var(--cyan);text-transform:uppercase;font-size:12px;letter-spacing:.12em}
+.clue{border-bottom:0;color:#cad5e8;border-radius:12px;padding:10px;cursor:pointer;transition:.2s}.clue:hover,.clue.selected{background:rgba(85,230,255,.09);color:#fff;transform:translateX(3px)}.clue b{color:#fff}.clue.done{opacity:.55;text-decoration:line-through}
+.table th,.table td{border-bottom-color:var(--line);color:#dfe7f5}.table th{color:var(--muted)}.table tbody tr{transition:.2s}.table tbody tr:hover{background:rgba(255,255,255,.035)}
+.pod .person{background:rgba(255,255,255,.05);border-color:var(--line);color:#fff}.p1 .person{box-shadow:0 0 34px rgba(255,215,90,.08)}.p1 .base{background:linear-gradient(#ffd75a,#d9a817)}.p2 .base{background:linear-gradient(#dbe6f4,#8f9baa)}.p3 .base{background:linear-gradient(#eaa36a,#a9613e)}
+.winner{border-bottom-color:var(--line)}.medal{background:rgba(255,255,255,.06)}
+.preview-wrap{background:rgba(6,17,32,.42);border-color:var(--line)}.pcell{background:#f7fbff;color:#12223a;border-color:rgba(128,174,218,.35)}
+.badge.published{background:rgba(142,255,155,.10);color:#aaffb5}.badge.draft{background:rgba(255,215,90,.10);color:#ffe28a}.badge.archived{background:rgba(219,230,244,.08);color:#c1cede}
+.toast{background:#10213d;border:1px solid var(--line);box-shadow:var(--shadow)}
+.confetti{animation:fall 3.2s linear forwards}
+@media(max-width:1000px){.cell,.block{width:38px;height:38px}.cell input{font-size:18px}}
+@media(max-width:650px){.cell,.block{width:31px;height:31px}.cell input{font-size:15px}.hero{padding:24px}.card{padding:15px}}
+
 </style>
 </head>
 <body>
@@ -171,7 +243,7 @@ main{max-width:1450px;margin:auto;padding:25px 20px 70px}.view{display:none}.vie
 
 <script>
 /* =========================================================
-   RCM QUEST v7 - SELF-CONTAINED PROTOTYPE
+   RCM QUEST - SUPABASE SHARED VERSION
    ========================================================= */
 const CONFIG={
   ADMIN_NAME:"Shafeek Sadiq",
@@ -260,6 +332,7 @@ let attemptStartPromise = null;
 let finishingAttempt = false;
 let layoutEntries = [];
 let adminChallenges = [];
+let activeEntry = null;
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -357,21 +430,117 @@ async function loadCurrentChallenge(){
  buildBoard();renderClues();await renderLeaderboard()
 }
 function key(r,c){return `${r}:${c}`}
+function cellsForEntry(entry){
+ const out=[];
+ for(let i=0;i<entry.answer.length;i++)out.push({r:entry.row+(entry.direction==="down"?i:0),c:entry.col+(entry.direction==="across"?i:0)});
+ return out
+}
+function entriesAtCell(r,c){return currentEntries.filter(entry=>cellsForEntry(entry).some(p=>p.r===r&&p.c===c))}
+function selectEntry(entry,focusCell=true){
+ if(!entry)return;
+ activeEntry=entry;
+ document.querySelectorAll(".cell").forEach(c=>c.classList.remove("active-word"));
+ document.querySelectorAll(".clue").forEach(c=>c.classList.remove("selected"));
+ cellsForEntry(entry).forEach(p=>document.querySelector(`.cell[data-key="${key(p.r,p.c)}"]`)?.classList.add("active-word"));
+ document.querySelector(`.clue[data-entry="${entry.number}-${entry.direction}"]`)?.classList.add("selected");
+ if(focusCell){
+  const cells=cellsForEntry(entry);
+  const target=cells.find(p=>{const input=cellMap.get(key(p.r,p.c));return input&&!input.value&&!input.disabled})||cells.find(p=>{const input=cellMap.get(key(p.r,p.c));return input&&!input.disabled});
+  if(target)cellMap.get(key(target.r,target.c))?.focus()
+ }
+}
+function selectEntryByCell(r,c){
+ const candidates=entriesAtCell(r,c);
+ if(!candidates.length)return;
+ if(activeEntry&&candidates.includes(activeEntry)){selectEntry(activeEntry,false);return}
+ selectEntry(candidates[0],false)
+}
+function advanceInActiveEntry(r,c){
+ if(!activeEntry)selectEntryByCell(r,c);
+ if(!activeEntry)return;
+ const cells=cellsForEntry(activeEntry),idx=cells.findIndex(p=>p.r===r&&p.c===c);
+ for(let i=idx+1;i<cells.length;i++){
+  const input=cellMap.get(key(cells[i].r,cells[i].c));
+  if(input&&!input.disabled&&!input.value){input.focus();return}
+ }
+ for(let i=idx+1;i<cells.length;i++){
+  const input=cellMap.get(key(cells[i].r,cells[i].c));
+  if(input&&!input.disabled){input.focus();return}
+ }
+}
+function moveToPreviousCell(r,c){
+ if(!activeEntry)selectEntryByCell(r,c);
+ if(!activeEntry)return;
+ const cells=cellsForEntry(activeEntry),idx=cells.findIndex(p=>p.r===r&&p.c===c);
+ for(let i=idx-1;i>=0;i--){const input=cellMap.get(key(cells[i].r,cells[i].c));if(input&&!input.disabled){input.focus();return}}
+}
+function moveByArrow(r,c,dr,dc){
+ let nr=r+dr,nc=c+dc;
+ for(let guard=0;guard<60;guard++,nr+=dr,nc+=dc){const input=cellMap.get(key(nr,nc));if(input&&!input.disabled){input.focus();return}}
+}
+function updateClueCompletion(){
+ currentEntries.forEach(entry=>{
+  const done=cellsForEntry(entry).every((p,i)=>{const input=cellMap.get(key(p.r,p.c));return input&&input.value===entry.answer[i].toUpperCase()});
+  document.querySelector(`.clue[data-entry="${entry.number}-${entry.direction}"]`)?.classList.toggle("done",done)
+ })
+}
+function setChallengeInputLocked(locked){
+ cellMap.forEach(input=>input.disabled=locked);
+ const board=document.getElementById("board");if(board)board.classList.toggle("attempt-locked",locked);
+ const check=document.getElementById("checkBtn"),clear=document.getElementById("clearBtn");
+ if(check)check.disabled=locked;if(clear)clear.disabled=locked
+}
+function lockCompletedAttempt(attempt,notify=true){
+ finished=true;stopTimer();
+ if(attempt?.started_at)startMs=new Date(attempt.started_at).getTime();
+ if(attempt?.elapsed_ms!=null)document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);
+ setChallengeInputLocked(true);
+ if(notify)toast("You have already completed this challenge. Your official time is locked.")
+}
+function handleCrosswordInput(input,r,c){
+ input.value=input.value.replace(/[^a-z0-9]/ig,"").toUpperCase();
+ input.classList.remove("wrong","correct","typed");
+ if(!input.value)return;
+ input.classList.add("typed");setTimeout(()=>input.classList.remove("typed"),320);
+ if(!startMs)startAttempt();
+ selectEntryByCell(r,c);updateClueCompletion();advanceInActiveEntry(r,c);
+ if(allFilled())checkPuzzle(true)
+}
+function handleCrosswordKey(e,r,c){
+ if(e.key==="Backspace"&&!e.target.value){e.preventDefault();moveToPreviousCell(r,c);return}
+ const arrows={ArrowRight:[0,1],ArrowLeft:[0,-1],ArrowDown:[1,0],ArrowUp:[-1,0]};
+ if(arrows[e.key]){e.preventDefault();moveByArrow(r,c,...arrows[e.key])}
+}
 function buildBoard(){
- stopTimer();startMs=null;finished=false;attemptStarting=false;attemptStartPromise=null;finishingAttempt=false;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
+ stopTimer();startMs=null;finished=false;attemptStarting=false;attemptStartPromise=null;finishingAttempt=false;activeEntry=null;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
  const cells=new Map(),nums=new Map();
  currentEntries.forEach(e=>{[...e.answer.toUpperCase()].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(key(r,c),ch)});nums.set(key(e.row,e.col),e.number)});
- const board=document.getElementById("board");board.innerHTML="";
+ const board=document.getElementById("board");board.innerHTML="";board.classList.remove("attempt-locked");document.getElementById("checkBtn").disabled=false;document.getElementById("clearBtn").disabled=false;
  if(!cells.size){board.innerHTML='<div class="empty">Challenge content is being prepared.</div>';return}
  const coords=[...cells.keys()].map(k=>k.split(":").map(Number)),minR=Math.min(...coords.map(x=>x[0])),maxR=Math.max(...coords.map(x=>x[0])),minC=Math.min(...coords.map(x=>x[1])),maxC=Math.max(...coords.map(x=>x[1]));
- board.style.gridTemplateColumns=`repeat(${maxC-minC+1},36px)`;
+ const cellSize=window.innerWidth<=650?31:window.innerWidth<=1000?38:42;board.style.gridTemplateColumns=`repeat(${maxC-minC+1},${cellSize}px)`;
  for(let r=minR;r<=maxR;r++)for(let c=minC;c<=maxC;c++){
-  const k=key(r,c),wrap=document.createElement("div");
-  if(cells.has(k)){wrap.className="cell";const i=document.createElement("input");i.maxLength=1;i.dataset.expected=cells.get(k);i.oninput=e=>{e.target.value=e.target.value.replace(/[^a-z0-9]/ig,"").toUpperCase();e.target.classList.remove("wrong","correct");if(e.target.value&&!startMs)startAttempt();if(allFilled())checkPuzzle(true)};wrap.appendChild(i);cellMap.set(k,i);if(nums.has(k)){const n=document.createElement("span");n.className="num";n.textContent=nums.get(k);wrap.appendChild(n)}}else wrap.className="block";
+  const k=key(r,c),wrap=document.createElement("div");wrap.dataset.key=k;
+  if(cells.has(k)){
+   wrap.className="cell";
+   const input=document.createElement("input");input.maxLength=1;input.inputMode="text";input.autocomplete="off";input.spellcheck=false;input.dataset.expected=cells.get(k);input.dataset.r=r;input.dataset.c=c;
+   input.addEventListener("focus",()=>selectEntryByCell(r,c));
+   input.addEventListener("input",()=>handleCrosswordInput(input,r,c));
+   input.addEventListener("keydown",e=>handleCrosswordKey(e,r,c));
+   wrap.appendChild(input);cellMap.set(k,input);
+   if(nums.has(k)){const n=document.createElement("span");n.className="num";n.textContent=nums.get(k);wrap.appendChild(n)}
+  }else wrap.className="block";
   board.appendChild(wrap)
  }
 }
-function renderClues(){["across","down"].forEach(dir=>{const box=document.getElementById(dir);box.innerHTML="";currentEntries.filter(e=>e.direction===dir).sort((a,b)=>a.number-b.number).forEach(e=>{const d=document.createElement("div");d.className="clue";d.innerHTML=`<b>${e.number}.</b> ${esc(e.clue)}`;box.appendChild(d)})})}
+function renderClues(){
+ ["across","down"].forEach(dir=>{
+  const box=document.getElementById(dir);box.innerHTML="";
+  currentEntries.filter(e=>e.direction===dir).sort((a,b)=>a.number-b.number).forEach(entry=>{
+   const d=document.createElement("div");d.className="clue";d.dataset.entry=`${entry.number}-${entry.direction}`;d.innerHTML=`<b>${entry.number}.</b> ${esc(entry.clue)}`;d.onclick=()=>selectEntry(entry,true);box.appendChild(d)
+  })
+ })
+}
 
 async function startAttempt(){
  if(startMs||finished)return;
@@ -386,7 +555,7 @@ async function startAttempt(){
   if(!attempt){console.error("Supabase returned no attempt.");toast("Unable to start the timer.");return null}
   startMs=new Date(attempt.started_at).getTime();
   if(attempt.completed_at&&attempt.elapsed_ms!=null){
-   finished=true;document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);toast("You have already completed this challenge.");await renderLeaderboard();return attempt
+   lockCompletedAttempt(attempt,true);await renderLeaderboard();return attempt
   }
   document.getElementById("timerBox").classList.add("running");
   clearInterval(timerInterval);
@@ -401,6 +570,7 @@ async function finishAttempt(){
  finishingAttempt=true;
  try{
   if(attemptStartPromise)await attemptStartPromise;
+  if(finished)return;
   if(!startMs){
    const started=await startAttempt();
    if(!started||finished)return
@@ -434,6 +604,8 @@ async function finishAttempt(){
 
   finished=true;
   stopTimer();
+  setChallengeInputLocked(true);
+  updateClueCompletion();
 
   document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);
 
@@ -457,7 +629,7 @@ async function checkPuzzle(auto=false){
  await finishAttempt()
 }
 document.getElementById("checkBtn").onclick=()=>checkPuzzle(false);
-document.getElementById("clearBtn").onclick=()=>cellMap.forEach(i=>{i.value="";i.classList.remove("wrong","correct")});
+document.getElementById("clearBtn").onclick=()=>{if(finished)return;cellMap.forEach(i=>{i.value="";i.classList.remove("wrong","correct","typed")});updateClueCompletion();if(activeEntry)selectEntry(activeEntry,false)};
 
 async function challengeResults(challengeId){
  if(!challengeId)return [];
