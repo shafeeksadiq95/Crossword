@@ -248,7 +248,23 @@ const SEEDED_HISTORY={
  ]
 };
 
-let session=null,currentChallenge=null,currentEntries=[],cellMap=new Map(),timerInterval=null,startMs=null,finished=false,layoutEntries=[];
+let session = null;
+
+let currentChallenge = null;
+
+let currentEntries = [];
+
+let cellMap = new Map();
+
+let timerInterval = null;
+
+let startMs = null;
+
+let finished = false;
+
+let attemptStarting = false;
+
+let layoutEntries = [];
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -476,35 +492,324 @@ function buildBoard(){
  board.style.gridTemplateColumns=`repeat(${maxC-minC+1},36px)`;
  for(let r=minR;r<=maxR;r++)for(let c=minC;c<=maxC;c++){
   const k=key(r,c),wrap=document.createElement("div");
-  if(cells.has(k)){wrap.className="cell";const i=document.createElement("input");i.maxLength=1;i.dataset.expected=cells.get(k);i.oninput=e=>{e.target.value=e.target.value.replace(/[^a-z0-9]/ig,"").toUpperCase();e.target.classList.remove("wrong","correct");if(e.target.value&&!startMs)startTimer();if(allFilled())checkPuzzle(true)};wrap.appendChild(i);cellMap.set(k,i);if(nums.has(k)){const n=document.createElement("span");n.className="num";n.textContent=nums.get(k);wrap.appendChild(n)}}else wrap.className="block";
+  if(cells.has(k)){wrap.className="cell";const i=document.createElement("input");i.maxLength=1;i.dataset.expected=cells.get(k);i.oninput=e=>{e.target.value=e.target.value.replace(/[^a-z0-9]/ig,"").toUpperCase();e.target.classList.remove("wrong","correct");if(e.target.value&&!startMs)startAttempt();if(allFilled())checkPuzzle(true)};wrap.appendChild(i);cellMap.set(k,i);if(nums.has(k)){const n=document.createElement("span");n.className="num";n.textContent=nums.get(k);wrap.appendChild(n)}}else wrap.className="block";
   board.appendChild(wrap)
  }
 }
 function renderClues(){["across","down"].forEach(dir=>{const box=document.getElementById(dir);box.innerHTML="";currentEntries.filter(e=>e.direction===dir).sort((a,b)=>a.number-b.number).forEach(e=>{const d=document.createElement("div");d.className="clue";d.innerHTML=`<b>${e.number}.</b> ${esc(e.clue)}`;box.appendChild(d)})})}
-function startTimer(){startMs=Date.now();document.getElementById("timerBox").classList.add("running");timerInterval=setInterval(()=>document.getElementById("timerText").textContent=fmt(Date.now()-startMs),35)}
+async function startAttempt() {
+
+    // Do nothing if:
+    // 1. timer is already running
+    // 2. a start request is already being processed
+    // 3. the challenge is already completed
+
+    if (
+        startMs ||
+        attemptStarting ||
+        finished
+    ) {
+
+        return;
+
+    }
+
+
+    attemptStarting = true;
+
+
+    console.log(
+        "Starting challenge attempt..."
+    );
+
+
+    const { data, error } =
+        await supabaseClient.rpc(
+
+            "start_attempt",
+
+            {
+
+                p_challenge_id:
+                    currentChallenge.id,
+
+                p_display_name:
+                    session.name,
+
+                p_email:
+                    session.email
+
+            }
+
+        );
+
+
+    attemptStarting = false;
+
+
+    if (error) {
+
+        console.error(
+            "Unable to start attempt:",
+            error
+        );
+
+
+        toast(
+            "Unable to start the challenge timer."
+        );
+
+
+        return;
+
+    }
+
+
+    console.log(
+        "Attempt started successfully:",
+        data
+    );
+
+
+    const attempt =
+        Array.isArray(data)
+            ? data[0]
+            : data;
+
+
+    if (!attempt) {
+
+        console.error(
+            "Supabase returned no attempt."
+        );
+
+        toast(
+            "Unable to start the timer."
+        );
+
+        return;
+
+    }
+
+
+    // Supabase is now the source of the official start time.
+
+    startMs =
+        new Date(
+            attempt.started_at
+        ).getTime();
+
+
+    document.getElementById(
+        "timerBox"
+    ).classList.add(
+        "running"
+    );
+
+
+    clearInterval(
+        timerInterval
+    );
+
+
+    timerInterval =
+        setInterval(
+
+            () => {
+
+                document.getElementById(
+                    "timerText"
+                ).textContent =
+                    fmt(
+                        Date.now() -
+                        startMs
+                    );
+
+            },
+
+            35
+
+        );
+
+}
 function stopTimer(){clearInterval(timerInterval);timerInterval=null;document.getElementById("timerBox").classList.remove("running")}
 function allFilled(){return [...cellMap.values()].every(i=>i.value)}
-function checkPuzzle(auto=false){
- if(!startMs&&!auto)return toast("Start entering the crossword first.");
- let ok=true;cellMap.forEach(i=>{const good=i.value===i.dataset.expected;i.classList.toggle("correct",good&&!!i.value);i.classList.toggle("wrong",!good&&!!i.value);if(!good)ok=false});
- if(!ok){if(!auto)toast("Not quite yet — check the highlighted cells.");return}
- if(finished)return;finished=true;const elapsed=Date.now()-startMs;stopTimer();document.getElementById("timerText").textContent=fmt(elapsed);
- const all=results(),existing=all.find(x=>x.challenge_id===currentChallenge.id&&x.email===session.email);
- if(!existing)all.push({challenge_id:currentChallenge.id,display_name:session.name,email:session.email,elapsed_ms:elapsed});
- else if(elapsed<existing.elapsed_ms){existing.display_name=session.name;existing.elapsed_ms=elapsed}
- saveResults(all);confetti();toast("Challenge complete! Your time has been recorded.");renderLeaderboard()
+async function checkPuzzle(
+    auto = false
+) {
+
+    if (
+        !startMs &&
+        !auto
+    ) {
+
+        return toast(
+            "Start entering the crossword first."
+        );
+
+    }
+
+
+    let ok = true;
+
+
+    cellMap.forEach(
+
+        input => {
+
+
+            const correct =
+                input.value ===
+                input.dataset.expected;
+
+
+            input.classList.toggle(
+                "correct",
+                correct &&
+                !!input.value
+            );
+
+
+            input.classList.toggle(
+                "wrong",
+                !correct &&
+                !!input.value
+            );
+
+
+            if (!correct) {
+
+                ok = false;
+
+            }
+
+        }
+
+    );
+
+
+    if (!ok) {
+
+        if (!auto) {
+
+            toast(
+                "Not quite yet — check the highlighted cells."
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    if (finished) {
+
+        return;
+
+    }
+
+
+    // Crossword is fully correct.
+    // Supabase now determines the official finish time.
+
+    await finishAttempt();
+
 }
 document.getElementById("checkBtn").onclick=()=>checkPuzzle(false);
 document.getElementById("clearBtn").onclick=()=>cellMap.forEach(i=>{i.value="";i.classList.remove("wrong","correct")});
-function challengeResults(id){
- const local=results().filter(x=>x.challenge_id===id);
- const seed=SEEDED_HISTORY[id]||[];
- const m=new Map();[...seed,...local].forEach(x=>{const k=(x.email||x.display_name).toLowerCase();if(!m.has(k)||x.elapsed_ms<m.get(k).elapsed_ms)m.set(k,x)});
- return [...m.values()].sort((a,b)=>a.elapsed_ms-b.elapsed_ms)
+async function challengeResults(
+    challengeId
+) {
+
+    const { data, error } =
+        await supabaseClient.rpc(
+            "get_leaderboard",
+            {
+                p_challenge_id:
+                    challengeId
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Leaderboard error:",
+            error
+        );
+
+        return [];
+
+    }
+
+
+    return data || [];
+
 }
 function podium(rows){const t=rows.slice(0,3),order=[t[1],t[0],t[2]],cls=["p2","p1","p3"],med=["🥈","🥇","🥉"];if(!t.length)return '<div class="empty">No completions yet. Be the first!</div>';return `<div class="podium">${order.map((r,i)=>r?`<div class="pod ${cls[i]}"><div class="person">${med[i]}<br><b>${esc(r.display_name)}</b><div class="sub">${fmt(r.elapsed_ms)}</div></div><div class="base">${i===1?1:i===0?2:3}</div></div>`:"").join("")}</div>`}
-function renderLeaderboard(){if(!currentChallenge)return;const rows=challengeResults(currentChallenge.id);document.getElementById("miniPodium").innerHTML=podium(rows);document.getElementById("fullPodium").innerHTML=podium(rows);document.getElementById("leaderRows").innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.display_name)}</b></td><td>${fmt(r.elapsed_ms)}</td></tr>`).join("")||'<tr><td colspan="3">No completions yet.</td></tr>'}
-function renderHistory(){
+async function renderLeaderboard() {
+
+    if (!currentChallenge)
+        return;
+
+
+    const rows =
+        await challengeResults(
+            currentChallenge.id
+        );
+
+
+    document.getElementById(
+        "miniPodium"
+    ).innerHTML =
+        podium(rows);
+
+
+    document.getElementById(
+        "fullPodium"
+    ).innerHTML =
+        podium(rows);
+
+
+    document.getElementById(
+        "leaderRows"
+    ).innerHTML =
+
+        rows.map(
+
+            (row, index) =>
+
+                `<tr>
+
+                    <td>
+                        ${index + 1}
+                    </td>
+
+                    <td>
+                        <b>
+                            ${esc(row.display_name)}
+                        </b>
+                    </td>
+
+                    <td>
+                        ${fmt(row.elapsed_ms)}
+                    </td>
+
+                </tr>`
+
+        ).join("")
+
+        ||
+
+        `<tr>
+            <td colspan="3">
+                No completions yet.
+            </td>
+        </tr>`;
+
+}
  const old=challenges().filter(x=>x.status==="archived");
  document.getElementById("historyGrid").innerHTML=old.map(c=>{const w=challengeResults(c.id).slice(0,3);return `<div class="history"><div class="eyebrow">${esc(c.label)}</div><h3>${esc(c.title)}</h3><div class="sub">${esc(c.topic)}</div><div style="margin-top:10px">${w.map((x,i)=>`<div class="winner"><div class="medal">${["🥇","🥈","🥉"][i]}</div><div><b>${esc(x.display_name)}</b><div class="sub">${fmt(x.elapsed_ms)}</div></div></div>`).join("")||'<div class="sub">No recorded winners.</div>'}</div></div>`}).join("")||'<div class="empty">No previous challenges yet.</div>'
 }
