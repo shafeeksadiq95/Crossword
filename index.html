@@ -253,7 +253,41 @@ let session=null,currentChallenge=null,currentEntries=[],cellMap=new Map(),timer
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function fmt(ms){ms=Math.max(0,Number(ms)||0);const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000),h=Math.floor((ms%1000)/10);return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${String(h).padStart(2,"0")}`}
-function challenges(){return JSON.parse(localStorage.getItem("rcmq-v7-challenges")||"null")||structuredClone(DEFAULT_CHALLENGES)}
+async function getActiveChallengeFromDatabase() {
+
+    console.log("Loading active challenge from Supabase...");
+
+    const { data, error } =
+        await supabaseClient.rpc(
+            "get_active_challenge"
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Unable to load active challenge:",
+            error
+        );
+
+        toast(
+            "Unable to load the current challenge."
+        );
+
+        return null;
+
+    }
+
+
+    console.log(
+        "Active challenge received:",
+        data
+    );
+
+
+    return data;
+
+}
 function saveChallenges(v){localStorage.setItem("rcmq-v7-challenges",JSON.stringify(v))}
 function results(){return JSON.parse(localStorage.getItem("rcmq-v7-results")||"[]")}
 function saveResults(v){localStorage.setItem("rcmq-v7-results",JSON.stringify(v))}
@@ -310,17 +344,126 @@ function openView(id){
 }
 
 /* ---------------- EMPLOYEE ---------------- */
-function loadCurrentChallenge(){
- const list=challenges();
- currentChallenge=list.find(x=>x.status==="published")||null;
- if(!currentChallenge){document.getElementById("empChallengeTitle").textContent="No active challenge";document.getElementById("board").innerHTML='<div class="empty">The next RCM Quest challenge will appear here once published.</div>';return}
- currentEntries=currentChallenge.entries||[];
- document.getElementById("empHeroTitle").textContent=currentChallenge.title;
- document.getElementById("empHeroDesc").textContent=currentChallenge.description||"Complete the crossword accurately and race for a Top 3 position.";
- document.getElementById("empChallengeTitle").textContent=currentChallenge.title;
- document.getElementById("empMeta").textContent=`${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
- document.getElementById("empTopic").textContent=currentChallenge.topic||"RCM";
- buildBoard();renderClues();renderLeaderboard();
+async function loadCurrentChallenge() {
+
+    console.log(
+        "Requesting current challenge from Supabase..."
+    );
+
+
+    const result =
+        await getActiveChallengeFromDatabase();
+
+
+    if (
+        !result ||
+        !result.challenge
+    ) {
+
+        currentChallenge = null;
+
+        currentEntries = [];
+
+
+        document.getElementById(
+            "empChallengeTitle"
+        ).textContent =
+            "No active challenge";
+
+
+        document.getElementById(
+            "empHeroTitle"
+        ).textContent =
+            "RCM Crossword Challenge";
+
+
+        document.getElementById(
+            "empHeroDesc"
+        ).textContent =
+            "The next RCM Quest challenge will appear once it is published.";
+
+
+        document.getElementById(
+            "empMeta"
+        ).textContent =
+            "";
+
+
+        document.getElementById(
+            "board"
+        ).innerHTML =
+            '<div class="empty">' +
+            'There is currently no published challenge.' +
+            '</div>';
+
+
+        console.log(
+            "No published challenge found in Supabase."
+        );
+
+
+        return;
+
+    }
+
+
+    currentChallenge =
+        result.challenge;
+
+
+    currentEntries =
+        result.entries || [];
+
+
+    console.log(
+        "Current challenge:",
+        currentChallenge
+    );
+
+
+    console.log(
+        "Crossword entries:",
+        currentEntries
+    );
+
+
+    document.getElementById(
+        "empHeroTitle"
+    ).textContent =
+        currentChallenge.title;
+
+
+    document.getElementById(
+        "empHeroDesc"
+    ).textContent =
+        currentChallenge.description ||
+        "Complete the crossword accurately and race for a Top 3 position.";
+
+
+    document.getElementById(
+        "empChallengeTitle"
+    ).textContent =
+        currentChallenge.title;
+
+
+    document.getElementById(
+        "empMeta"
+    ).textContent =
+        `${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
+
+
+    document.getElementById(
+        "empTopic"
+    ).textContent =
+        currentChallenge.topic || "RCM";
+
+
+    buildBoard();
+
+    renderClues();
+
+    await renderLeaderboard();
+
 }
 function key(r,c){return `${r}:${c}`}
 function buildBoard(){
