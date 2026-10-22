@@ -814,7 +814,194 @@ async function renderLeaderboard() {
  document.getElementById("historyGrid").innerHTML=old.map(c=>{const w=challengeResults(c.id).slice(0,3);return `<div class="history"><div class="eyebrow">${esc(c.label)}</div><h3>${esc(c.title)}</h3><div class="sub">${esc(c.topic)}</div><div style="margin-top:10px">${w.map((x,i)=>`<div class="winner"><div class="medal">${["🥇","🥈","🥉"][i]}</div><div><b>${esc(x.display_name)}</b><div class="sub">${fmt(x.elapsed_ms)}</div></div></div>`).join("")||'<div class="sub">No recorded winners.</div>'}</div></div>`}).join("")||'<div class="empty">No previous challenges yet.</div>'
 }
 function confetti(){const colors=["#2857ff","#efb429","#159466","#ff5d7d","#8b65ff"];for(let i=0;i<70;i++){const x=document.createElement("i");x.className="confetti";x.style.left=Math.random()*100+"vw";x.style.background=colors[i%colors.length];x.style.animationDelay=Math.random()*.45+"s";document.body.appendChild(x);setTimeout(()=>x.remove(),3200)}}
+async function renderHistory() {
 
+    console.log(
+        "Loading challenge history from Supabase..."
+    );
+
+
+    const { data, error } =
+        await supabaseClient.rpc(
+            "get_challenge_history"
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Unable to load challenge history:",
+            error
+        );
+
+
+        document.getElementById(
+            "historyGrid"
+        ).innerHTML =
+            '<div class="empty">' +
+            'Unable to load previous challenges.' +
+            '</div>';
+
+
+        return;
+
+    }
+
+
+    console.log(
+        "Challenge history received:",
+        data
+    );
+
+
+    const history =
+        data || [];
+
+
+    if (history.length === 0) {
+
+        document.getElementById(
+            "historyGrid"
+        ).innerHTML =
+            '<div class="empty">' +
+            'No previous challenges yet.' +
+            '</div>';
+
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "historyGrid"
+    ).innerHTML =
+
+        history.map(
+
+            challenge => {
+
+                const winners =
+                    challenge.winners || [];
+
+
+                return `
+
+                    <div class="history">
+
+                        <div class="eyebrow">
+
+                            ${esc(
+                                challenge.label
+                            )}
+
+                        </div>
+
+
+                        <h3>
+
+                            ${esc(
+                                challenge.title
+                            )}
+
+                        </h3>
+
+
+                        <div class="sub">
+
+                            ${esc(
+                                challenge.topic
+                            )}
+
+                        </div>
+
+
+                        <div
+                            class="sub"
+                            style="margin-top:4px"
+                        >
+
+                            ${challenge.starts_on}
+                            to
+                            ${challenge.ends_on}
+
+                        </div>
+
+
+                        <div
+                            style="margin-top:12px"
+                        >
+
+                            ${
+                                winners.length > 0
+
+                                ?
+
+                                winners.map(
+
+                                    (winner, index) => `
+
+                                        <div class="winner">
+
+                                            <div class="medal">
+
+                                                ${
+                                                    ["🥇","🥈","🥉"]
+                                                    [index]
+                                                }
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <b>
+
+                                                    ${
+                                                        esc(
+                                                            winner.display_name
+                                                        )
+                                                    }
+
+                                                </b>
+
+
+                                                <div class="sub">
+
+                                                    ${
+                                                        fmt(
+                                                            winner.elapsed_ms
+                                                        )
+                                                    }
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    `
+
+                                ).join("")
+
+                                :
+
+                                '<div class="sub">' +
+                                'No recorded winners.' +
+                                '</div>'
+                            }
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+        ).join("");
+
+}
 /* ---------------- ADMIN ---------------- */
 function loadAdmin(){renderAdminDashboard();renderAdminChallenges();fillResultsSelect()}
 function renderAdminDashboard(){
