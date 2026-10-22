@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>RCM Quest | HRC Training Gamification</title>
+<title>RCM Codebreaker | HRC Training Gamification</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -136,6 +136,29 @@ select option{background:#10213d;color:#fff}
 @media(max-width:1000px){.cell,.block{width:38px;height:38px}.cell input{font-size:18px}}
 @media(max-width:650px){.cell,.block{width:31px;height:31px}.cell input{font-size:15px}.hero{padding:24px}.card{padding:15px}}
 
+
+/* RCM CODEBREAKER ENHANCEMENTS */
+.codebreaker-title,.codebreaker-brand{
+ background:linear-gradient(90deg,#fff,var(--cyan),#b9a2ff,#fff);
+ background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+ animation:codebreakerShine 4.5s linear infinite
+}
+.codebreaker-title{font-size:clamp(38px,6vw,66px)!important;line-height:.98!important;letter-spacing:-2px;margin-bottom:10px!important}
+.codebreaker-tagline{font-size:18px!important;font-weight:800;color:#dfe8ff!important;letter-spacing:.02em}
+.codebreaker-kicker{display:inline-block;font-size:11px;font-weight:900;letter-spacing:.22em;color:var(--cyan);margin-bottom:8px;animation:codebreakerPulse 1.8s ease-in-out infinite}
+@keyframes codebreakerShine{to{background-position:220% center}}
+@keyframes codebreakerPulse{50%{transform:translateY(-2px);filter:drop-shadow(0 0 10px rgba(85,230,255,.7));opacity:.78}}
+.token-gate{display:grid;grid-template-columns:70px 1fr;gap:18px;align-items:center;margin-bottom:18px;border-color:rgba(85,230,255,.22);background:linear-gradient(125deg,rgba(13,28,51,.94),rgba(24,42,78,.88));animation:tokenGateIn .45s ease}
+.token-icon{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;font-size:30px;background:rgba(85,230,255,.09);border:1px solid rgba(85,230,255,.2);box-shadow:0 0 30px rgba(85,230,255,.10);animation:lockFloat 2.6s ease-in-out infinite}
+.token-row{display:flex;gap:9px;margin-top:14px;max-width:620px}.token-row input{flex:1;min-width:180px;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:#fff;outline:none}.token-row input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(85,230,255,.08)}
+.token-message{font-size:12px;color:#ff9bb2;min-height:16px;margin-top:7px}
+@keyframes tokenGateIn{from{opacity:0;transform:translateY(10px)}}@keyframes lockFloat{50%{transform:translateY(-4px) rotate(2deg)}}
+.cell input.cue-letter{background:#eefcff;border-color:#8ddbea;color:#173a59;box-shadow:inset 0 0 0 2px rgba(85,230,255,.18);font-weight:1000}
+.cue-badge{font-size:10px;color:var(--cyan);font-weight:850}
+.fun-complete{animation:funComplete .85s ease}
+@keyframes funComplete{50%{transform:scale(1.025);filter:drop-shadow(0 0 20px rgba(142,255,155,.35))}}
+@media(max-width:650px){.token-gate{grid-template-columns:1fr}.token-icon{width:52px;height:52px}.token-row{flex-direction:column}}
+
 </style>
 </head>
 <body>
@@ -144,19 +167,20 @@ select option{background:#10213d;color:#fff}
  <div class="login-shell">
   <div class="login-brand">
    <div class="logo">✦</div>
-   <div style="font-size:29px;font-weight:900;margin-top:19px">RCM Quest</div>
+   <div style="font-size:29px;font-weight:900;margin-top:19px">RCM Codebreaker</div>
    <div style="font-size:12px;color:#bdc9ff;margin-top:4px">HRC Training Gamification</div>
-   <h1>Learn RCM.<br>Compete. Win.</h1>
-   <p>One shared learning experience for HRC employees. Complete revenue-cycle crossword challenges, strengthen process knowledge, and compete for a place on the leaderboard.</p>
+   <h1 class="codebreaker-title">RCM Codebreaker</h1>
+   <p class="codebreaker-tagline">Crack the clues. Unlock the answers.</p>
+   <p>One shared learning experience for HRC employees. Decode revenue-cycle clues, strengthen process knowledge, and compete for a place on the leaderboard.</p>
    <div class="features"><div class="feature">⏱ Automatic challenge timer</div><div class="feature">🏆 Top 3 leaderboard</div><div class="feature">🧩 Bi-weekly RCM crosswords</div><div class="feature">📚 Challenge history</div></div>
   </div>
   <div class="login-panel"><div>
    <div class="eyebrow">Single Access Portal</div>
-   <h2>Enter RCM Quest</h2>
+   <h2>Enter RCM Codebreaker</h2>
    <p class="sub">Enter your name and HRC email. The same login automatically opens either the Employee experience or the Admin Console.</p>
    <div class="field"><label>Employee Name</label><input id="loginName" placeholder="Your full name"></div>
    <div class="field"><label>HRC Email Address</label><input id="loginEmail" type="email" placeholder="name@healthreconconnect.com"></div>
-   <button class="btn full" id="loginBtn">Continue to RCM Quest →</button>
+   <button class="btn full" id="loginBtn">Continue to RCM Codebreaker →</button>
    <div id="routeMsg" class="route"></div>
    <div class="note"><b>Admin routing:</b> Shafeek Sadiq + shafeeks@healthreconconnect.com opens the Admin Console.<br><br><b>Employee routing:</b> Any other valid @healthreconconnect.com email opens the Crossword experience.</div>
   </div></div>
@@ -166,7 +190,7 @@ select option{background:#10213d;color:#fff}
 <section id="appScreen" class="hidden">
  <header class="header">
   <div class="header-main">
-   <div class="brand"><div class="logo">✦</div><div><b>RCM Quest</b><small>HRC Training Gamification</small></div><span id="roleBadge" class="role-badge"></span></div>
+   <div class="brand"><div class="logo">✦</div><div><b class="codebreaker-brand">RCM Codebreaker</b><small>Crack the clues. Unlock the answers.</small></div><span id="roleBadge" class="role-badge"></span></div>
    <div class="timer-wrap" id="timerWrap"><div class="timer" id="timerBox"><span>Challenge Timer</span><strong id="timerText">00:00.00</strong></div></div>
    <div class="identity"><div class="avatar" id="avatar">?</div><div><b id="identityName"></b><small id="identityEmail"></small></div><button class="btn gray" id="logoutBtn">Logout</button></div>
   </div>
@@ -176,11 +200,21 @@ select option{background:#10213d;color:#fff}
  <main>
   <!-- EMPLOYEE -->
   <section id="employeeChallenge" class="view">
-   <div class="hero"><div class="eyebrow" style="color:#becaff">Bi-weekly learning challenge</div><h1 id="empHeroTitle">RCM Crossword Challenge</h1><p id="empHeroDesc">Complete the challenge accurately and race for a Top 3 position.</p></div>
-   <div class="grid two">
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Bi-weekly learning challenge</div><div class="codebreaker-kicker">✦ RCM CODEBREAKER ✦</div><h1 id="empHeroTitle">RCM Codebreaker</h1><p id="empHeroDesc">Crack the clues. Unlock the answers.</p></div>
+   <div id="tokenGate" class="card token-gate hidden">
+    <div class="token-icon">🔐</div>
+    <div>
+     <div class="eyebrow">Challenge Access</div>
+     <h2 style="margin:4px 0 6px">Unlock the Code</h2>
+     <p class="sub" style="margin:0">Enter the challenge token shared by the Admin to access this round.</p>
+     <div class="token-row"><input id="challengeTokenInput" type="password" autocomplete="off" placeholder="Enter challenge token"><button class="btn" id="unlockChallengeBtn">Unlock Challenge →</button></div>
+     <div id="tokenMessage" class="token-message"></div>
+    </div>
+   </div>
+   <div id="challengeContent" class="grid two hidden">
     <div class="card">
      <div class="eyebrow">Current Challenge</div><h2 id="empChallengeTitle">Loading…</h2><div class="sub" id="empMeta"></div>
-     <div class="pills"><span class="pill live">● LIVE</span><span id="empTopic" class="pill">RCM</span><span class="pill">Timer starts with first letter</span></div>
+     <div class="pills"><span class="pill live">● LIVE</span><span id="empTopic" class="pill">RCM</span><span id="empDifficulty" class="pill">MODERATE</span><span class="pill">Timer starts with first typed letter</span></div>
      <div class="board-wrap"><div id="board" class="board"></div></div>
      <div class="toolbar"><button class="btn" id="checkBtn">Check Answers</button><button class="btn alt" id="clearBtn">Clear Grid</button></div>
     </div>
@@ -192,7 +226,7 @@ select option{background:#10213d;color:#fff}
   </section>
 
   <section id="employeeHistory" class="view">
-   <div class="hero"><div class="eyebrow" style="color:#becaff">Hall of Fame</div><h1>Weekly Challenges</h1><p>Previous RCM Quest rounds and their Top 3 winners stay visible here.</p></div>
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Hall of Fame</div><h1>Weekly Challenges</h1><p>Previous RCM Codebreaker rounds and their Top 3 winners stay visible here.</p></div>
    <div id="historyGrid" class="history-grid"></div>
   </section>
 
@@ -203,7 +237,7 @@ select option{background:#10213d;color:#fff}
 
   <!-- ADMIN -->
   <section id="adminDashboard" class="view">
-   <div class="hero"><div class="eyebrow" style="color:#becaff">Administration</div><h1>RCM Quest Admin Dashboard</h1><p>Create, manage and publish RCM training challenges from the same website.</p></div>
+   <div class="hero"><div class="eyebrow" style="color:#becaff">Administration</div><h1>RCM Codebreaker Admin Dashboard</h1><p>Create, manage and publish RCM Codebreaker challenges from the same website.</p></div>
    <div class="grid stats"><div class="card stat"><span>Total Challenges</span><b id="statTotal">0</b></div><div class="card stat"><span>Published</span><b id="statPublished">0</b></div><div class="card stat"><span>Recorded Completions</span><b id="statPlayers">0</b></div><div class="card stat"><span>Current Topic</span><b id="statTopic" style="font-size:18px">—</b></div></div>
    <div class="card" style="margin-top:18px"><h3 style="margin-top:0">Current Published Challenge</h3><div id="currentAdminSummary"></div></div>
   </section>
@@ -222,7 +256,9 @@ select option{background:#10213d;color:#fff}
      <div class="field"><label>Title</label><input id="editTitle" placeholder="Claims & Denials Challenge"></div>
      <div class="field"><label>Topic / Theme</label><input id="editTopic" placeholder="Denial Management"></div>
      <div class="field"><label>Description</label><textarea id="editDescription" placeholder="Short employee-facing description"></textarea></div>
-     <div class="twocol"><div class="field"><label>Start Date</label><input type="date" id="editStart"></div><div class="field"><label>End Date</label><input type="date" id="editEnd"></div></div>
+     <div class="twocol"><div class="field"><label>Start Date</label><input type="date" id="editStart"></div><div class="field"><label>Start Time (Sri Lanka Time)</label><input type="time" id="editStartTime" value="09:00"></div></div>
+     <div class="twocol"><div class="field"><label>End Date</label><input type="date" id="editEnd"></div><div class="field"><label>End Time (Sri Lanka Time)</label><input type="time" id="editEndTime" value="23:59"></div></div>
+     <div class="twocol"><div class="field"><label>Challenge Token</label><input id="editToken" autocomplete="off" placeholder="e.g. RCM-2026"></div><div class="field"><label>Difficulty</label><select id="editDifficulty"><option value="beginner">Beginner — first-letter cues</option><option value="moderate" selected>Moderate — first-letter cues</option><option value="hard">Hard — no letter cues</option></select></div></div>
      <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3 style="margin:0">RCM Terms & Clues</h3><div class="sub">Use a single word/abbreviation for the crossword answer.</div></div><button class="btn alt" id="addTermBtn">+ Term</button></div>
      <div id="termRows"></div>
@@ -266,7 +302,7 @@ const supabaseClient =
   );
 async function testSupabaseConnection() {
 
-    console.log("Testing RCM Quest connection...");
+    console.log("Testing RCM Codebreaker connection...");
 
     const { data, error } =
         await supabaseClient.rpc(
@@ -277,14 +313,14 @@ async function testSupabaseConnection() {
     if (error) {
 
         console.error(
-            "RCM Quest database error:",
+            "RCM Codebreaker database error:",
             error
         );
 
     } else {
 
         console.log(
-            "RCM Quest database connected:",
+            "RCM Codebreaker database connected:",
             data
         );
 
@@ -333,6 +369,8 @@ let finishingAttempt = false;
 let layoutEntries = [];
 let adminChallenges = [];
 let activeEntry = null;
+let challengeAccessToken = "";
+let challengeUnlocked = false;
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -356,7 +394,7 @@ function login(){
  if(!validHrcEmail(email)){msg.textContent="Please enter a valid HRC email address.";msg.className="route show error";return}
  session={name,email,role:isAdmin(name,email)?"admin":"employee"};
  sessionStorage.setItem("rcmq-v7-session",JSON.stringify(session));
- msg.textContent=session.role==="admin"?"Administrator recognized. Opening Admin Console…":"Employee access confirmed. Opening the current challenge…";
+ msg.textContent=session.role==="admin"?"Administrator recognized. Opening Admin Console…":"Access confirmed. Opening RCM Codebreaker…";
  msg.className="route show "+(session.role==="admin"?"admin":"user");
  setTimeout(enterApp,350)
 }
@@ -370,7 +408,7 @@ async function enterApp(){
  document.getElementById("identityName").textContent=session.name;
  document.getElementById("identityEmail").textContent=session.email;
  document.getElementById("avatar").textContent=session.name[0].toUpperCase();
- document.getElementById("roleBadge").textContent=session.role==="admin"?"ADMIN":"EMPLOYEE";
+ document.getElementById("roleBadge").textContent=session.role==="admin"?"ADMIN":session.name;
  document.getElementById("timerWrap").classList.toggle("hidden",session.role==="admin");
  buildNav();
  if(session.role==="admin"){
@@ -381,7 +419,7 @@ async function enterApp(){
   await loadCurrentChallenge()
  }
 }
-function logout(){sessionStorage.removeItem("rcmq-v7-session");session=null;stopTimer();document.getElementById("appScreen").classList.add("hidden");document.getElementById("loginScreen").classList.remove("hidden");document.getElementById("routeMsg").className="route";document.getElementById("loginName").value="";document.getElementById("loginEmail").value=""}
+function logout(){sessionStorage.removeItem("rcmq-v7-session");session=null;challengeAccessToken="";challengeUnlocked=false;stopTimer();document.getElementById("appScreen").classList.add("hidden");document.getElementById("loginScreen").classList.remove("hidden");document.getElementById("routeMsg").className="route";document.getElementById("loginName").value="";document.getElementById("loginEmail").value=""}
 document.getElementById("logoutBtn").onclick=logout;
 
 function buildNav(){
@@ -406,30 +444,103 @@ function openView(id){
 async function loadCurrentChallenge(){
  console.log("Requesting current challenge from Supabase...");
  const result=await getActiveChallengeFromDatabase();
+ challengeAccessToken="";challengeUnlocked=false;
+ document.getElementById("challengeTokenInput").value="";
+ document.getElementById("tokenMessage").textContent="";
+ document.getElementById("challengeContent").classList.add("hidden");
+ document.getElementById("tokenGate").classList.add("hidden");
+
  if(!result||!result.challenge){
   currentChallenge=null;currentEntries=[];
   document.getElementById("empChallengeTitle").textContent="No active challenge";
-  document.getElementById("empHeroTitle").textContent="RCM Crossword Challenge";
-  document.getElementById("empHeroDesc").textContent="The next RCM Quest challenge will appear once it is published.";
+  document.getElementById("empHeroTitle").textContent="RCM Codebreaker";
+  document.getElementById("empHeroDesc").textContent="Crack the clues. Unlock the answers.";
   document.getElementById("empMeta").textContent="";
-  document.getElementById("board").innerHTML='<div class="empty">There is currently no published challenge.</div>';
+  document.getElementById("board").innerHTML='<div class="empty">There is currently no active challenge.</div>';
   document.getElementById("across").innerHTML="";
   document.getElementById("down").innerHTML="";
   document.getElementById("miniPodium").innerHTML="";
   console.log("No published challenge found in Supabase.");return
  }
+
  currentChallenge=result.challenge;
  currentEntries=result.entries||[];
  console.log("Current challenge:",currentChallenge);
  console.log("Crossword entries:",currentEntries);
+
  document.getElementById("empHeroTitle").textContent=currentChallenge.title;
- document.getElementById("empHeroDesc").textContent=currentChallenge.description||"Complete the crossword accurately and race for a Top 3 position.";
+ document.getElementById("empHeroDesc").textContent=currentChallenge.description||"Crack the clues. Unlock the answers.";
  document.getElementById("empChallengeTitle").textContent=currentChallenge.title;
- document.getElementById("empMeta").textContent=`${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
+ const timeText=(currentChallenge.start_time&&currentChallenge.end_time)?` • ${currentChallenge.start_time}–${currentChallenge.end_time} SLST`:"";
+ document.getElementById("empMeta").textContent=`${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}${timeText}`;
  document.getElementById("empTopic").textContent=currentChallenge.topic||"RCM";
- buildBoard();renderClues();await renderLeaderboard()
+ document.getElementById("empDifficulty").textContent=(currentChallenge.difficulty||"moderate").toUpperCase();
+
+ document.getElementById("tokenGate").classList.remove("hidden");
+ await renderLeaderboard();
 }
 function key(r,c){return `${r}:${c}`}
+
+async function unlockCurrentChallenge(){
+ if(!currentChallenge)return;
+ const token=document.getElementById("challengeTokenInput").value.trim();
+ const message=document.getElementById("tokenMessage");
+ if(!token){message.textContent="Enter the challenge token to unlock this round.";return}
+
+ const button=document.getElementById("unlockChallengeBtn");
+ button.disabled=true;message.textContent="Checking token…";
+
+ const {data,error}=await supabaseClient.rpc("unlock_challenge",{
+  p_challenge_id:currentChallenge.id,
+  p_display_name:session.name,
+  p_email:session.email,
+  p_token:token
+ });
+
+ button.disabled=false;
+
+ if(error){
+  console.error("Challenge unlock failed:",error);
+  message.textContent=error.message||"Unable to unlock this challenge.";
+  return
+ }
+
+ if(!data?.valid){
+  message.textContent=data?.message||"That token did not crack the lock. Try again.";
+  document.getElementById("challengeTokenInput").select();
+  return
+ }
+
+ challengeAccessToken=token;
+ challengeUnlocked=true;
+ currentEntries=data.entries||currentEntries;
+ message.textContent="";
+ document.getElementById("tokenGate").classList.add("hidden");
+ document.getElementById("challengeContent").classList.remove("hidden");
+
+ buildBoard();
+ renderClues();
+
+ if(data.already_completed){
+  lockCompletedAttempt({
+   started_at:data.started_at,
+   elapsed_ms:data.elapsed_ms
+  },false);
+  funAlreadyCompletedNotice();
+ }else{
+  toast("🔓 Code unlocked! Crack the clues and beat the clock.");
+ }
+}
+
+function funAlreadyCompletedNotice(){
+ toast("🏆 Code already cracked! You’ve completed this challenge — your official time is locked.");
+ const content=document.getElementById("challengeContent");
+ content.classList.remove("fun-complete");void content.offsetWidth;content.classList.add("fun-complete");
+ setTimeout(()=>content.classList.remove("fun-complete"),900)
+}
+
+document.getElementById("unlockChallengeBtn").onclick=unlockCurrentChallenge;
+document.getElementById("challengeTokenInput").addEventListener("keydown",e=>{if(e.key==="Enter")unlockCurrentChallenge()});
 function cellsForEntry(entry){
  const out=[];
  for(let i=0;i<entry.answer.length;i++)out.push({r:entry.row+(entry.direction==="down"?i:0),c:entry.col+(entry.direction==="across"?i:0)});
@@ -495,7 +606,7 @@ function lockCompletedAttempt(attempt,notify=true){
  if(attempt?.started_at)startMs=new Date(attempt.started_at).getTime();
  if(attempt?.elapsed_ms!=null)document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);
  setChallengeInputLocked(true);
- if(notify)toast("You have already completed this challenge. Your official time is locked.")
+ if(notify)funAlreadyCompletedNotice()
 }
 function handleCrosswordInput(input,r,c){
  input.value=input.value.replace(/[^a-z0-9]/ig,"").toUpperCase();
@@ -513,8 +624,8 @@ function handleCrosswordKey(e,r,c){
 }
 function buildBoard(){
  stopTimer();startMs=null;finished=false;attemptStarting=false;attemptStartPromise=null;finishingAttempt=false;activeEntry=null;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
- const cells=new Map(),nums=new Map();
- currentEntries.forEach(e=>{[...e.answer.toUpperCase()].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(key(r,c),ch)});nums.set(key(e.row,e.col),e.number)});
+ const cells=new Map(),nums=new Map(),cueCells=new Set();
+ currentEntries.forEach(e=>{[...e.answer.toUpperCase()].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(key(r,c),ch)});nums.set(key(e.row,e.col),e.number);if((currentChallenge?.difficulty||"moderate")!=="hard")cueCells.add(key(e.row,e.col))});
  const board=document.getElementById("board");board.innerHTML="";board.classList.remove("attempt-locked");document.getElementById("checkBtn").disabled=false;document.getElementById("clearBtn").disabled=false;
  if(!cells.size){board.innerHTML='<div class="empty">Challenge content is being prepared.</div>';return}
  const coords=[...cells.keys()].map(k=>k.split(":").map(Number)),minR=Math.min(...coords.map(x=>x[0])),maxR=Math.max(...coords.map(x=>x[0])),minC=Math.min(...coords.map(x=>x[1])),maxC=Math.max(...coords.map(x=>x[1]));
@@ -524,6 +635,7 @@ function buildBoard(){
   if(cells.has(k)){
    wrap.className="cell";
    const input=document.createElement("input");input.maxLength=1;input.inputMode="text";input.autocomplete="off";input.spellcheck=false;input.dataset.expected=cells.get(k);input.dataset.r=r;input.dataset.c=c;
+   if(cueCells.has(k)){input.value=cells.get(k);input.disabled=true;input.classList.add("cue-letter");input.title="First-letter cue"}
    input.addEventListener("focus",()=>selectEntryByCell(r,c));
    input.addEventListener("input",()=>handleCrosswordInput(input,r,c));
    input.addEventListener("keydown",e=>handleCrosswordKey(e,r,c));
@@ -543,12 +655,13 @@ function renderClues(){
 }
 
 async function startAttempt(){
+ if(!challengeUnlocked||!challengeAccessToken){toast("🔐 Unlock the challenge first.");return null}
  if(startMs||finished)return;
  if(attemptStartPromise)return attemptStartPromise;
  attemptStarting=true;
  attemptStartPromise=(async()=>{
   console.log("Starting challenge attempt...");
-  const {data,error}=await supabaseClient.rpc("start_attempt",{p_challenge_id:currentChallenge.id,p_display_name:session.name,p_email:session.email});
+  const {data,error}=await supabaseClient.rpc("start_attempt",{p_challenge_id:currentChallenge.id,p_display_name:session.name,p_email:session.email,p_token:challengeAccessToken});
   if(error){console.error("Unable to start attempt:",error);toast("Unable to start the challenge timer.");return null}
   console.log("Attempt started successfully:",data);
   const attempt=Array.isArray(data)?data[0]:data;
@@ -610,7 +723,7 @@ async function finishAttempt(){
   document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);
 
   confetti();
-  toast("Challenge complete! Your official time has been recorded.");
+  toast("🎉 Code cracked! Mission complete — your official time is locked.");
 
   await renderLeaderboard()
  }finally{
@@ -674,20 +787,20 @@ async function renderAdminDashboard(){
  document.getElementById("statTotal").textContent=list.length;
  document.getElementById("statPublished").textContent=list.filter(x=>x.status==="published").length;
  document.getElementById("statTopic").textContent=cur?.topic||"—";
- document.getElementById("currentAdminSummary").innerHTML=cur?`<div style="padding:8px 0"><b>${esc(cur.label)} — ${esc(cur.title)}</b><div class="sub">${esc(cur.topic)} • ${cur.starts_on} to ${cur.ends_on} • ${(cur.entries||[]).length} terms</div><div class="toolbar"><button class="btn alt" onclick="editChallenge('${cur.id}')">Edit Current Challenge</button><button class="btn" onclick="newChallenge()">+ New Challenge</button></div></div>`:'<div class="empty">No published challenge. Create or publish a challenge.</div>';
+ document.getElementById("currentAdminSummary").innerHTML=cur?`<div style="padding:8px 0"><b>${esc(cur.label)} — ${esc(cur.title)}</b><div class="sub">${esc(cur.topic)} • ${cur.starts_on} ${cur.start_time||""} to ${cur.ends_on} ${cur.end_time||""} SLST • ${esc((cur.difficulty||"moderate").toUpperCase())} • ${(cur.entries||[]).length} terms</div><div class="toolbar"><button class="btn alt" onclick="editChallenge('${cur.id}')">Edit Current Challenge</button><button class="btn" onclick="newChallenge()">+ New Challenge</button></div></div>`:'<div class="empty">No published challenge. Create or publish a challenge.</div>';
  const resultSets=await Promise.all(list.map(c=>challengeResults(c.id)));
  document.getElementById("statPlayers").textContent=resultSets.reduce((sum,rows)=>sum+rows.length,0)
 }
 function renderAdminChallenges(){
- document.getElementById("challengeRows").innerHTML=adminChallenges.map(c=>`<tr><td><b>${esc(c.label)}</b><br>${esc(c.title)}</td><td>${esc(c.topic)}</td><td>${c.starts_on}<br>${c.ends_on}</td><td><span class="badge ${c.status}">${c.status}</span></td><td>${(c.entries||[]).length}</td><td><button class="btn alt" onclick="editChallenge('${c.id}')">Edit</button> <button class="btn red" onclick="deleteChallenge('${c.id}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="6"><div class="empty">No challenges found.</div></td></tr>'
+ document.getElementById("challengeRows").innerHTML=adminChallenges.map(c=>`<tr><td><b>${esc(c.label)}</b><br>${esc(c.title)}</td><td>${esc(c.topic)}</td><td>${c.starts_on} ${c.start_time||""}<br>${c.ends_on} ${c.end_time||""}</td><td><span class="badge ${c.status}">${c.status}</span><br><span class="sub">${esc((c.difficulty||"moderate").toUpperCase())}</span></td><td>${(c.entries||[]).length}</td><td><button class="btn alt" onclick="editChallenge('${c.id}')">Edit</button> <button class="btn red" onclick="deleteChallenge('${c.id}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="6"><div class="empty">No challenges found.</div></td></tr>'
 }
 document.getElementById("createChallengeBtn").onclick=newChallenge;
 function newChallenge(){
- openView("adminEditor");document.getElementById("editId").value="";document.getElementById("editLabel").value=`Challenge ${String(adminChallenges.length+1).padStart(2,"0")}`;document.getElementById("editStatus").value="draft";document.getElementById("editTitle").value="";document.getElementById("editTopic").value="";document.getElementById("editDescription").value="";document.getElementById("editStart").value="";document.getElementById("editEnd").value="";document.getElementById("termRows").innerHTML="";for(let i=0;i<6;i++)addTerm();layoutEntries=[];renderPreview()
+ openView("adminEditor");document.getElementById("editId").value="";document.getElementById("editLabel").value=`Challenge ${String(adminChallenges.length+1).padStart(2,"0")}`;document.getElementById("editStatus").value="draft";document.getElementById("editTitle").value="";document.getElementById("editTopic").value="";document.getElementById("editDescription").value="";document.getElementById("editStart").value="";document.getElementById("editStartTime").value="09:00";document.getElementById("editEnd").value="";document.getElementById("editEndTime").value="23:59";document.getElementById("editToken").value="";document.getElementById("editDifficulty").value="moderate";document.getElementById("termRows").innerHTML="";for(let i=0;i<6;i++)addTerm();layoutEntries=[];renderPreview()
 }
 function editChallenge(id){
  const c=adminChallenges.find(x=>x.id===id);if(!c)return;openView("adminEditor");
- document.getElementById("editId").value=c.id;document.getElementById("editLabel").value=c.label;document.getElementById("editStatus").value=c.status;document.getElementById("editTitle").value=c.title;document.getElementById("editTopic").value=c.topic;document.getElementById("editDescription").value=c.description||"";document.getElementById("editStart").value=c.starts_on;document.getElementById("editEnd").value=c.ends_on;document.getElementById("termRows").innerHTML="";(c.entries||[]).forEach(e=>addTerm(e.answer,e.clue));layoutEntries=structuredClone(c.entries||[]);renderPreview()
+ document.getElementById("editId").value=c.id;document.getElementById("editLabel").value=c.label;document.getElementById("editStatus").value=c.status;document.getElementById("editTitle").value=c.title;document.getElementById("editTopic").value=c.topic;document.getElementById("editDescription").value=c.description||"";document.getElementById("editStart").value=c.starts_on;document.getElementById("editStartTime").value=c.start_time||"09:00";document.getElementById("editEnd").value=c.ends_on;document.getElementById("editEndTime").value=c.end_time||"23:59";document.getElementById("editToken").value=c.access_token||"";document.getElementById("editDifficulty").value=c.difficulty||"moderate";document.getElementById("termRows").innerHTML="";(c.entries||[]).forEach(e=>addTerm(e.answer,e.clue));layoutEntries=structuredClone(c.entries||[]);renderPreview()
 }
 function addTerm(a="",c=""){const r=document.createElement("div");r.className="word-row";r.innerHTML=`<input class="term-answer" placeholder="ANSWER" value="${esc(a)}"><input class="term-clue" placeholder="Clue shown to employees" value="${esc(c)}"><button class="iconbtn">×</button>`;r.querySelector("button").onclick=()=>r.remove();document.getElementById("termRows").appendChild(r)}
 document.getElementById("addTermBtn").onclick=()=>addTerm();
@@ -712,11 +825,12 @@ function renderPreview(){
 }
 function payload(statusOverride=null){
  if(!layoutEntries.length&&!generateLayout())return null;
- return{id:document.getElementById("editId").value||("c"+Date.now()),label:document.getElementById("editLabel").value.trim(),title:document.getElementById("editTitle").value.trim(),topic:document.getElementById("editTopic").value.trim(),description:document.getElementById("editDescription").value.trim(),starts_on:document.getElementById("editStart").value,ends_on:document.getElementById("editEnd").value,status:statusOverride||document.getElementById("editStatus").value,entries:layoutEntries}
+ return{id:document.getElementById("editId").value||("c"+Date.now()),label:document.getElementById("editLabel").value.trim(),title:document.getElementById("editTitle").value.trim(),topic:document.getElementById("editTopic").value.trim(),description:document.getElementById("editDescription").value.trim(),starts_on:document.getElementById("editStart").value,start_time:document.getElementById("editStartTime").value,ends_on:document.getElementById("editEnd").value,end_time:document.getElementById("editEndTime").value,access_token:document.getElementById("editToken").value.trim(),difficulty:document.getElementById("editDifficulty").value,status:statusOverride||document.getElementById("editStatus").value,entries:layoutEntries}
 }
 async function saveChallengeToDatabase(statusOverride=null){
  const p=payload(statusOverride);if(!p)return;
- if(!p.label||!p.title||!p.topic||!p.starts_on||!p.ends_on)return toast("Complete the title, topic and dates.");
+ if(!p.label||!p.title||!p.topic||!p.starts_on||!p.start_time||!p.ends_on||!p.end_time)return toast("Complete the title, topic, dates and times.");
+ if(!p.access_token||p.access_token.length<4)return toast("Add a challenge token with at least 4 characters.");
  if((p.entries||[]).length<2)return toast("Add at least two crossword terms.");
  console.log("Saving challenge to Supabase:",p);
  const {data,error}=await supabaseClient.rpc("admin_save_challenge",{p_admin_name:session.name,p_admin_email:session.email,p_payload:p});
