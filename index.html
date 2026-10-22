@@ -159,6 +159,18 @@ select option{background:#10213d;color:#fff}
 @keyframes funComplete{50%{transform:scale(1.025);filter:drop-shadow(0 0 20px rgba(142,255,155,.35))}}
 @media(max-width:650px){.token-gate{grid-template-columns:1fr}.token-icon{width:52px;height:52px}.token-row{flex-direction:column}}
 
+
+/* EMPLOYEE CLUE COPY DETERRENTS */
+#employeeChallenge .clue-box,
+#employeeChallenge .clue,
+#employeeChallenge #across,
+#employeeChallenge #down{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+#employeeChallenge .clue{cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -213,12 +225,12 @@ select option{background:#10213d;color:#fff}
    <div id="challengeContent" class="grid two hidden">
     <div class="card">
      <div class="eyebrow">Current Challenge</div><h2 id="empChallengeTitle">Loading…</h2><div class="sub" id="empMeta"></div>
-     <div class="pills"><span class="pill live">● LIVE</span><span id="empTopic" class="pill">RCM</span><span id="empDifficulty" class="pill">MODERATE</span><span class="pill">Timer starts with first typed letter</span></div>
+     <div class="pills"><span class="pill live">● LIVE</span><span id="empTopic" class="pill">RCM</span><span id="empDifficulty" class="pill">MODERATE</span><span class="pill">Timer starts when the challenge is unlocked</span></div>
      <div class="board-wrap"><div id="board" class="board"></div></div>
      <div class="toolbar"><button class="btn" id="checkBtn">Check Answers</button><button class="btn alt" id="clearBtn">Clear Grid</button></div>
     </div>
     <div>
-     <div class="card"><h3 style="margin-top:0">Clues</h3><p class="sub">Complete all cells correctly to stop the timer.</p><div class="clue-grid"><div class="clue-box"><h4>Across</h4><div id="across"></div></div><div class="clue-box"><h4>Down</h4><div id="down"></div></div></div></div>
+     <div class="card"><h3 style="margin-top:0">Clues</h3><p class="sub">The timer starts as soon as the challenge is unlocked and stops when the puzzle is 100% correct.</p><div class="clue-grid"><div class="clue-box"><h4>Across</h4><div id="across"></div></div><div class="clue-box"><h4>Down</h4><div id="down"></div></div></div></div>
      <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Top 3 – Current Challenge</h3><div id="miniPodium"></div></div>
     </div>
    </div>
@@ -527,7 +539,16 @@ async function unlockCurrentChallenge(){
   },false);
   funAlreadyCompletedNotice();
  }else{
-  toast("🔓 Code unlocked! Crack the clues and beat the clock.");
+  const started=await startAttempt();
+  if(!started){
+   document.getElementById("challengeContent").classList.add("hidden");
+   document.getElementById("tokenGate").classList.remove("hidden");
+   message.textContent="Unable to start the official timer. Please try unlocking again.";
+   challengeAccessToken="";
+   challengeUnlocked=false;
+   return;
+  }
+  toast("⏱️ Code unlocked! Your official timer is now running.");
  }
 }
 
@@ -540,6 +561,27 @@ function funAlreadyCompletedNotice(){
 
 document.getElementById("unlockChallengeBtn").onclick=unlockCurrentChallenge;
 document.getElementById("challengeTokenInput").addEventListener("keydown",e=>{if(e.key==="Enter")unlockCurrentChallenge()});
+
+function isEmployeeClueTarget(target){
+ return !!target?.closest?.("#employeeChallenge .clue-box, #employeeChallenge .clue, #employeeChallenge #across, #employeeChallenge #down");
+}
+
+["copy","cut","dragstart"].forEach(eventName=>{
+ document.addEventListener(eventName,e=>{
+  if(isEmployeeClueTarget(e.target)){
+   e.preventDefault();
+   toast("🧩 Codebreaker rule: clues stay inside the challenge.");
+  }
+ })
+});
+
+document.addEventListener("contextmenu",e=>{
+ if(isEmployeeClueTarget(e.target)){
+  e.preventDefault();
+  toast("🧩 Codebreaker rule: clues stay inside the challenge.");
+ }
+});
+
 function cellsForEntry(entry){
  const out=[];
  for(let i=0;i<entry.answer.length;i++)out.push({r:entry.row+(entry.direction==="down"?i:0),c:entry.col+(entry.direction==="across"?i:0)});
