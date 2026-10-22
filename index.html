@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>RCM Quest | HRC Training Gamification</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
  --ink:#17233f;--muted:#667085;--bg:#f3f6fb;--card:#fff;--line:#e3e8f1;
@@ -177,7 +178,51 @@ const CONFIG={
   ADMIN_EMAIL:"shafeeks@healthreconconnect.com",
   DOMAIN:"healthreconconnect.com"
 };
+ 
+// SUPABASE CONNECTION
 
+const SUPABASE_URL =
+  "https://dhlmrwfyzjjtqgwzqlmz.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_fn6KUpxg_n1c7a8pyODh-A_lnFFOIBA";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+async function testSupabaseConnection() {
+
+  console.log("Testing Supabase connection...");
+
+  const { data, error } =
+    await supabaseClient
+      .from("challenges")
+      .select("id,title,status")
+      .limit(5);
+
+  if (error) {
+
+    console.error(
+      "Supabase connection reached the project, but the database returned:",
+      error
+    );
+
+  } else {
+
+    console.log(
+      "Supabase connection successful:",
+      data
+    );
+
+  }
+
+}
+
+testSupabaseConnection();
+ .from("table")
+.select(...)
 const DEFAULT_CHALLENGES=[
  {id:"c02",label:"Challenge 02",title:"RCM Foundations",topic:"Revenue Cycle Fundamentals",
   description:"Core terminology across claims, denials, payments and payer workflows.",
