@@ -249,66 +249,30 @@ const SEEDED_HISTORY={
 };
 
 let session = null;
-
 let currentChallenge = null;
-
 let currentEntries = [];
-
 let cellMap = new Map();
-
 let timerInterval = null;
-
 let startMs = null;
-
 let finished = false;
-
 let attemptStarting = false;
-
+let attemptStartPromise = null;
 let layoutEntries = [];
+let adminChallenges = [];
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function fmt(ms){ms=Math.max(0,Number(ms)||0);const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000),h=Math.floor((ms%1000)/10);return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${String(h).padStart(2,"0")}`}
-async function getActiveChallengeFromDatabase() {
-
-    console.log("Loading active challenge from Supabase...");
-
-    const { data, error } =
-        await supabaseClient.rpc(
-            "get_active_challenge"
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Unable to load active challenge:",
-            error
-        );
-
-        toast(
-            "Unable to load the current challenge."
-        );
-
-        return null;
-
-    }
-
-
-    console.log(
-        "Active challenge received:",
-        data
-    );
-
-
-    return data;
-
-}
-function saveChallenges(v){localStorage.setItem("rcmq-v7-challenges",JSON.stringify(v))}
-function results(){return JSON.parse(localStorage.getItem("rcmq-v7-results")||"[]")}
-function saveResults(v){localStorage.setItem("rcmq-v7-results",JSON.stringify(v))}
 function validHrcEmail(email){return email.toLowerCase().endsWith("@"+CONFIG.DOMAIN)}
 function isAdmin(name,email){return name.trim().toLowerCase()===CONFIG.ADMIN_NAME.toLowerCase()&&email.trim().toLowerCase()===CONFIG.ADMIN_EMAIL.toLowerCase()}
+
+async function getActiveChallengeFromDatabase(){
+ console.log("Loading active challenge from Supabase...");
+ const {data,error}=await supabaseClient.rpc("get_active_challenge");
+ if(error){console.error("Unable to load active challenge:",error);toast("Unable to load the current challenge.");return null}
+ console.log("Active challenge received:",data);
+ return data
+}
 
 function login(){
  const name=document.getElementById("loginName").value.trim();
@@ -320,12 +284,12 @@ function login(){
  sessionStorage.setItem("rcmq-v7-session",JSON.stringify(session));
  msg.textContent=session.role==="admin"?"Administrator recognized. Opening Admin Console…":"Employee access confirmed. Opening the current challenge…";
  msg.className="route show "+(session.role==="admin"?"admin":"user");
- setTimeout(enterApp,350);
+ setTimeout(enterApp,350)
 }
 document.getElementById("loginBtn").onclick=login;
 ["loginName","loginEmail"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")login()}));
 
-function enterApp(){
+async function enterApp(){
  if(!session)return;
  document.getElementById("loginScreen").classList.add("hidden");
  document.getElementById("appScreen").classList.remove("hidden");
@@ -335,8 +299,13 @@ function enterApp(){
  document.getElementById("roleBadge").textContent=session.role==="admin"?"ADMIN":"EMPLOYEE";
  document.getElementById("timerWrap").classList.toggle("hidden",session.role==="admin");
  buildNav();
- if(session.role==="admin"){loadAdmin();openView("adminDashboard")}
- else{loadCurrentChallenge();openView("employeeChallenge")}
+ if(session.role==="admin"){
+  openView("adminDashboard");
+  await loadAdmin()
+ }else{
+  openView("employeeChallenge");
+  await loadCurrentChallenge()
+ }
 }
 function logout(){sessionStorage.removeItem("rcmq-v7-session");session=null;stopTimer();document.getElementById("appScreen").classList.add("hidden");document.getElementById("loginScreen").classList.remove("hidden");document.getElementById("routeMsg").className="route";document.getElementById("loginName").value="";document.getElementById("loginEmail").value=""}
 document.getElementById("logoutBtn").onclick=logout;
@@ -360,130 +329,35 @@ function openView(id){
 }
 
 /* ---------------- EMPLOYEE ---------------- */
-async function loadCurrentChallenge() {
-
-    console.log(
-        "Requesting current challenge from Supabase..."
-    );
-
-
-    const result =
-        await getActiveChallengeFromDatabase();
-
-
-    if (
-        !result ||
-        !result.challenge
-    ) {
-
-        currentChallenge = null;
-
-        currentEntries = [];
-
-
-        document.getElementById(
-            "empChallengeTitle"
-        ).textContent =
-            "No active challenge";
-
-
-        document.getElementById(
-            "empHeroTitle"
-        ).textContent =
-            "RCM Crossword Challenge";
-
-
-        document.getElementById(
-            "empHeroDesc"
-        ).textContent =
-            "The next RCM Quest challenge will appear once it is published.";
-
-
-        document.getElementById(
-            "empMeta"
-        ).textContent =
-            "";
-
-
-        document.getElementById(
-            "board"
-        ).innerHTML =
-            '<div class="empty">' +
-            'There is currently no published challenge.' +
-            '</div>';
-
-
-        console.log(
-            "No published challenge found in Supabase."
-        );
-
-
-        return;
-
-    }
-
-
-    currentChallenge =
-        result.challenge;
-
-
-    currentEntries =
-        result.entries || [];
-
-
-    console.log(
-        "Current challenge:",
-        currentChallenge
-    );
-
-
-    console.log(
-        "Crossword entries:",
-        currentEntries
-    );
-
-
-    document.getElementById(
-        "empHeroTitle"
-    ).textContent =
-        currentChallenge.title;
-
-
-    document.getElementById(
-        "empHeroDesc"
-    ).textContent =
-        currentChallenge.description ||
-        "Complete the crossword accurately and race for a Top 3 position.";
-
-
-    document.getElementById(
-        "empChallengeTitle"
-    ).textContent =
-        currentChallenge.title;
-
-
-    document.getElementById(
-        "empMeta"
-    ).textContent =
-        `${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
-
-
-    document.getElementById(
-        "empTopic"
-    ).textContent =
-        currentChallenge.topic || "RCM";
-
-
-    buildBoard();
-
-    renderClues();
-
-    await renderLeaderboard();
-
+async function loadCurrentChallenge(){
+ console.log("Requesting current challenge from Supabase...");
+ const result=await getActiveChallengeFromDatabase();
+ if(!result||!result.challenge){
+  currentChallenge=null;currentEntries=[];
+  document.getElementById("empChallengeTitle").textContent="No active challenge";
+  document.getElementById("empHeroTitle").textContent="RCM Crossword Challenge";
+  document.getElementById("empHeroDesc").textContent="The next RCM Quest challenge will appear once it is published.";
+  document.getElementById("empMeta").textContent="";
+  document.getElementById("board").innerHTML='<div class="empty">There is currently no published challenge.</div>';
+  document.getElementById("across").innerHTML="";
+  document.getElementById("down").innerHTML="";
+  document.getElementById("miniPodium").innerHTML="";
+  console.log("No published challenge found in Supabase.");return
+ }
+ currentChallenge=result.challenge;
+ currentEntries=result.entries||[];
+ console.log("Current challenge:",currentChallenge);
+ console.log("Crossword entries:",currentEntries);
+ document.getElementById("empHeroTitle").textContent=currentChallenge.title;
+ document.getElementById("empHeroDesc").textContent=currentChallenge.description||"Complete the crossword accurately and race for a Top 3 position.";
+ document.getElementById("empChallengeTitle").textContent=currentChallenge.title;
+ document.getElementById("empMeta").textContent=`${currentChallenge.label} • ${currentChallenge.starts_on} to ${currentChallenge.ends_on}`;
+ document.getElementById("empTopic").textContent=currentChallenge.topic||"RCM";
+ buildBoard();renderClues();await renderLeaderboard()
 }
 function key(r,c){return `${r}:${c}`}
 function buildBoard(){
- stopTimer();startMs=null;finished=false;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
+ stopTimer();startMs=null;finished=false;attemptStarting=false;attemptStartPromise=null;cellMap.clear();document.getElementById("timerText").textContent="00:00.00";
  const cells=new Map(),nums=new Map();
  currentEntries.forEach(e=>{[...e.answer.toUpperCase()].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);cells.set(key(r,c),ch)});nums.set(key(e.row,e.col),e.number)});
  const board=document.getElementById("board");board.innerHTML="";
@@ -497,527 +371,115 @@ function buildBoard(){
  }
 }
 function renderClues(){["across","down"].forEach(dir=>{const box=document.getElementById(dir);box.innerHTML="";currentEntries.filter(e=>e.direction===dir).sort((a,b)=>a.number-b.number).forEach(e=>{const d=document.createElement("div");d.className="clue";d.innerHTML=`<b>${e.number}.</b> ${esc(e.clue)}`;box.appendChild(d)})})}
-async function startAttempt() {
 
-    // Do nothing if:
-    // 1. timer is already running
-    // 2. a start request is already being processed
-    // 3. the challenge is already completed
-
-    if (
-        startMs ||
-        attemptStarting ||
-        finished
-    ) {
-
-        return;
-
-    }
-
-
-    attemptStarting = true;
-
-
-    console.log(
-        "Starting challenge attempt..."
-    );
-
-
-    const { data, error } =
-        await supabaseClient.rpc(
-
-            "start_attempt",
-
-            {
-
-                p_challenge_id:
-                    currentChallenge.id,
-
-                p_display_name:
-                    session.name,
-
-                p_email:
-                    session.email
-
-            }
-
-        );
-
-
-    attemptStarting = false;
-
-
-    if (error) {
-
-        console.error(
-            "Unable to start attempt:",
-            error
-        );
-
-
-        toast(
-            "Unable to start the challenge timer."
-        );
-
-
-        return;
-
-    }
-
-
-    console.log(
-        "Attempt started successfully:",
-        data
-    );
-
-
-    const attempt =
-        Array.isArray(data)
-            ? data[0]
-            : data;
-
-
-    if (!attempt) {
-
-        console.error(
-            "Supabase returned no attempt."
-        );
-
-        toast(
-            "Unable to start the timer."
-        );
-
-        return;
-
-    }
-
-
-    // Supabase is now the source of the official start time.
-
-    startMs =
-        new Date(
-            attempt.started_at
-        ).getTime();
-
-
-    document.getElementById(
-        "timerBox"
-    ).classList.add(
-        "running"
-    );
-
-
-    clearInterval(
-        timerInterval
-    );
-
-
-    timerInterval =
-        setInterval(
-
-            () => {
-
-                document.getElementById(
-                    "timerText"
-                ).textContent =
-                    fmt(
-                        Date.now() -
-                        startMs
-                    );
-
-            },
-
-            35
-
-        );
-
+async function startAttempt(){
+ if(startMs||finished)return;
+ if(attemptStartPromise)return attemptStartPromise;
+ attemptStarting=true;
+ attemptStartPromise=(async()=>{
+  console.log("Starting challenge attempt...");
+  const {data,error}=await supabaseClient.rpc("start_attempt",{p_challenge_id:currentChallenge.id,p_display_name:session.name,p_email:session.email});
+  if(error){console.error("Unable to start attempt:",error);toast("Unable to start the challenge timer.");return null}
+  console.log("Attempt started successfully:",data);
+  const attempt=Array.isArray(data)?data[0]:data;
+  if(!attempt){console.error("Supabase returned no attempt.");toast("Unable to start the timer.");return null}
+  startMs=new Date(attempt.started_at).getTime();
+  if(attempt.completed_at&&attempt.elapsed_ms!=null){
+   finished=true;document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);toast("You have already completed this challenge.");await renderLeaderboard();return attempt
+  }
+  document.getElementById("timerBox").classList.add("running");
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{document.getElementById("timerText").textContent=fmt(Date.now()-startMs)},35);
+  return attempt
+ })();
+ try{return await attemptStartPromise}finally{attemptStarting=false;attemptStartPromise=null}
 }
+
+async function finishAttempt(){
+ if(finished)return;
+ if(attemptStartPromise)await attemptStartPromise;
+ if(!startMs){const started=await startAttempt();if(!started||finished)return}
+ console.log("Submitting completed challenge...");
+ const {data,error}=await supabaseClient.rpc("finish_attempt",{p_challenge_id:currentChallenge.id,p_email:session.email});
+ if(error){console.error("Unable to finish attempt:",error);toast("Your crossword is correct, but the completion time could not be recorded.");return}
+ console.log("Completion recorded:",data);
+ const attempt=Array.isArray(data)?data[0]:data;
+ if(!attempt||attempt.elapsed_ms==null){toast("Unable to retrieve your completion time.");return}
+ finished=true;stopTimer();
+ document.getElementById("timerText").textContent=fmt(attempt.elapsed_ms);
+ confetti();toast("Challenge complete! Your official time has been recorded.");
+ await renderLeaderboard()
+}
+
 function stopTimer(){clearInterval(timerInterval);timerInterval=null;document.getElementById("timerBox").classList.remove("running")}
 function allFilled(){return [...cellMap.values()].every(i=>i.value)}
-async function checkPuzzle(
-    auto = false
-) {
-
-    if (
-        !startMs &&
-        !auto
-    ) {
-
-        return toast(
-            "Start entering the crossword first."
-        );
-
-    }
-
-
-    let ok = true;
-
-
-    cellMap.forEach(
-
-        input => {
-
-
-            const correct =
-                input.value ===
-                input.dataset.expected;
-
-
-            input.classList.toggle(
-                "correct",
-                correct &&
-                !!input.value
-            );
-
-
-            input.classList.toggle(
-                "wrong",
-                !correct &&
-                !!input.value
-            );
-
-
-            if (!correct) {
-
-                ok = false;
-
-            }
-
-        }
-
-    );
-
-
-    if (!ok) {
-
-        if (!auto) {
-
-            toast(
-                "Not quite yet — check the highlighted cells."
-            );
-
-        }
-
-
-        return;
-
-    }
-
-
-    if (finished) {
-
-        return;
-
-    }
-
-
-    // Crossword is fully correct.
-    // Supabase now determines the official finish time.
-
-    await finishAttempt();
-
+async function checkPuzzle(auto=false){
+ if(!startMs&&!attemptStartPromise&&!auto)return toast("Start entering the crossword first.");
+ let ok=true;
+ cellMap.forEach(input=>{const correct=input.value===input.dataset.expected;input.classList.toggle("correct",correct&&!!input.value);input.classList.toggle("wrong",!correct&&!!input.value);if(!correct)ok=false});
+ if(!ok){if(!auto)toast("Not quite yet — check the highlighted cells.");return}
+ if(finished)return;
+ await finishAttempt()
 }
 document.getElementById("checkBtn").onclick=()=>checkPuzzle(false);
 document.getElementById("clearBtn").onclick=()=>cellMap.forEach(i=>{i.value="";i.classList.remove("wrong","correct")});
-async function challengeResults(
-    challengeId
-) {
 
-    const { data, error } =
-        await supabaseClient.rpc(
-            "get_leaderboard",
-            {
-                p_challenge_id:
-                    challengeId
-            }
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Leaderboard error:",
-            error
-        );
-
-        return [];
-
-    }
-
-
-    return data || [];
-
+async function challengeResults(challengeId){
+ if(!challengeId)return [];
+ const {data,error}=await supabaseClient.rpc("get_leaderboard",{p_challenge_id:challengeId});
+ if(error){console.error("Leaderboard error:",error);return []}
+ return data||[]
 }
 function podium(rows){const t=rows.slice(0,3),order=[t[1],t[0],t[2]],cls=["p2","p1","p3"],med=["🥈","🥇","🥉"];if(!t.length)return '<div class="empty">No completions yet. Be the first!</div>';return `<div class="podium">${order.map((r,i)=>r?`<div class="pod ${cls[i]}"><div class="person">${med[i]}<br><b>${esc(r.display_name)}</b><div class="sub">${fmt(r.elapsed_ms)}</div></div><div class="base">${i===1?1:i===0?2:3}</div></div>`:"").join("")}</div>`}
-async function renderLeaderboard() {
-
-    if (!currentChallenge)
-        return;
-
-
-    const rows =
-        await challengeResults(
-            currentChallenge.id
-        );
-
-
-    document.getElementById(
-        "miniPodium"
-    ).innerHTML =
-        podium(rows);
-
-
-    document.getElementById(
-        "fullPodium"
-    ).innerHTML =
-        podium(rows);
-
-
-    document.getElementById(
-        "leaderRows"
-    ).innerHTML =
-
-        rows.map(
-
-            (row, index) =>
-
-                `<tr>
-
-                    <td>
-                        ${index + 1}
-                    </td>
-
-                    <td>
-                        <b>
-                            ${esc(row.display_name)}
-                        </b>
-                    </td>
-
-                    <td>
-                        ${fmt(row.elapsed_ms)}
-                    </td>
-
-                </tr>`
-
-        ).join("")
-
-        ||
-
-        `<tr>
-            <td colspan="3">
-                No completions yet.
-            </td>
-        </tr>`;
-
+async function renderLeaderboard(){
+ if(!currentChallenge){document.getElementById("miniPodium").innerHTML='<div class="empty">No active challenge.</div>';document.getElementById("fullPodium").innerHTML='<div class="empty">No active challenge.</div>';document.getElementById("leaderRows").innerHTML="";return}
+ const rows=await challengeResults(currentChallenge.id);
+ document.getElementById("miniPodium").innerHTML=podium(rows);
+ document.getElementById("fullPodium").innerHTML=podium(rows);
+ document.getElementById("leaderRows").innerHTML=rows.map((row,index)=>`<tr><td>${index+1}</td><td><b>${esc(row.display_name)}</b></td><td>${fmt(row.elapsed_ms)}</td></tr>`).join("")||'<tr><td colspan="3">No completions yet.</td></tr>'
 }
- const old=challenges().filter(x=>x.status==="archived");
- document.getElementById("historyGrid").innerHTML=old.map(c=>{const w=challengeResults(c.id).slice(0,3);return `<div class="history"><div class="eyebrow">${esc(c.label)}</div><h3>${esc(c.title)}</h3><div class="sub">${esc(c.topic)}</div><div style="margin-top:10px">${w.map((x,i)=>`<div class="winner"><div class="medal">${["🥇","🥈","🥉"][i]}</div><div><b>${esc(x.display_name)}</b><div class="sub">${fmt(x.elapsed_ms)}</div></div></div>`).join("")||'<div class="sub">No recorded winners.</div>'}</div></div>`}).join("")||'<div class="empty">No previous challenges yet.</div>'
+
+async function renderHistory(){
+ console.log("Loading challenge history from Supabase...");
+ const {data,error}=await supabaseClient.rpc("get_challenge_history");
+ if(error){console.error("Unable to load challenge history:",error);document.getElementById("historyGrid").innerHTML='<div class="empty">Unable to load previous challenges.</div>';return}
+ console.log("Challenge history received:",data);
+ const history=data||[];
+ if(!history.length){document.getElementById("historyGrid").innerHTML='<div class="empty">No previous challenges yet.</div>';return}
+ document.getElementById("historyGrid").innerHTML=history.map(challenge=>{const winners=challenge.winners||[];return `<div class="history"><div class="eyebrow">${esc(challenge.label)}</div><h3>${esc(challenge.title)}</h3><div class="sub">${esc(challenge.topic)}</div><div class="sub" style="margin-top:4px">${esc(challenge.starts_on)} to ${esc(challenge.ends_on)}</div><div style="margin-top:12px">${winners.length?winners.map((winner,index)=>`<div class="winner"><div class="medal">${["🥇","🥈","🥉"][index]||"🏅"}</div><div><b>${esc(winner.display_name)}</b><div class="sub">${fmt(winner.elapsed_ms)}</div></div></div>`).join(""):'<div class="sub">No recorded winners.</div>'}</div></div>`}).join("")
 }
 function confetti(){const colors=["#2857ff","#efb429","#159466","#ff5d7d","#8b65ff"];for(let i=0;i<70;i++){const x=document.createElement("i");x.className="confetti";x.style.left=Math.random()*100+"vw";x.style.background=colors[i%colors.length];x.style.animationDelay=Math.random()*.45+"s";document.body.appendChild(x);setTimeout(()=>x.remove(),3200)}}
-async function renderHistory() {
 
-    console.log(
-        "Loading challenge history from Supabase..."
-    );
-
-
-    const { data, error } =
-        await supabaseClient.rpc(
-            "get_challenge_history"
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Unable to load challenge history:",
-            error
-        );
-
-
-        document.getElementById(
-            "historyGrid"
-        ).innerHTML =
-            '<div class="empty">' +
-            'Unable to load previous challenges.' +
-            '</div>';
-
-
-        return;
-
-    }
-
-
-    console.log(
-        "Challenge history received:",
-        data
-    );
-
-
-    const history =
-        data || [];
-
-
-    if (history.length === 0) {
-
-        document.getElementById(
-            "historyGrid"
-        ).innerHTML =
-            '<div class="empty">' +
-            'No previous challenges yet.' +
-            '</div>';
-
-
-        return;
-
-    }
-
-
-    document.getElementById(
-        "historyGrid"
-    ).innerHTML =
-
-        history.map(
-
-            challenge => {
-
-                const winners =
-                    challenge.winners || [];
-
-
-                return `
-
-                    <div class="history">
-
-                        <div class="eyebrow">
-
-                            ${esc(
-                                challenge.label
-                            )}
-
-                        </div>
-
-
-                        <h3>
-
-                            ${esc(
-                                challenge.title
-                            )}
-
-                        </h3>
-
-
-                        <div class="sub">
-
-                            ${esc(
-                                challenge.topic
-                            )}
-
-                        </div>
-
-
-                        <div
-                            class="sub"
-                            style="margin-top:4px"
-                        >
-
-                            ${challenge.starts_on}
-                            to
-                            ${challenge.ends_on}
-
-                        </div>
-
-
-                        <div
-                            style="margin-top:12px"
-                        >
-
-                            ${
-                                winners.length > 0
-
-                                ?
-
-                                winners.map(
-
-                                    (winner, index) => `
-
-                                        <div class="winner">
-
-                                            <div class="medal">
-
-                                                ${
-                                                    ["🥇","🥈","🥉"]
-                                                    [index]
-                                                }
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <b>
-
-                                                    ${
-                                                        esc(
-                                                            winner.display_name
-                                                        )
-                                                    }
-
-                                                </b>
-
-
-                                                <div class="sub">
-
-                                                    ${
-                                                        fmt(
-                                                            winner.elapsed_ms
-                                                        )
-                                                    }
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                    `
-
-                                ).join("")
-
-                                :
-
-                                '<div class="sub">' +
-                                'No recorded winners.' +
-                                '</div>'
-                            }
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            }
-
-        ).join("");
-
-}
 /* ---------------- ADMIN ---------------- */
-function loadAdmin(){renderAdminDashboard();renderAdminChallenges();fillResultsSelect()}
-function renderAdminDashboard(){
- const list=challenges(),cur=list.find(x=>x.status==="published"),all=results();
- document.getElementById("statTotal").textContent=list.length;document.getElementById("statPublished").textContent=list.filter(x=>x.status==="published").length;document.getElementById("statPlayers").textContent=all.length;document.getElementById("statTopic").textContent=cur?.topic||"—";
- document.getElementById("currentAdminSummary").innerHTML=cur?`<div style="padding:8px 0"><b>${esc(cur.label)} — ${esc(cur.title)}</b><div class="sub">${esc(cur.topic)} • ${cur.starts_on} to ${cur.ends_on} • ${(cur.entries||[]).length} terms</div><div class="toolbar"><button class="btn alt" onclick="editChallenge('${cur.id}')">Edit Current Challenge</button><button class="btn" onclick="newChallenge()">+ New Challenge</button></div></div>`:'<div class="empty">No published challenge. Create or publish a challenge.</div>'
+async function loadAdminChallenges(){
+ console.log("Loading Admin challenges from Supabase...");
+ const {data,error}=await supabaseClient.rpc("admin_list_challenges",{p_admin_name:session.name,p_admin_email:session.email});
+ if(error){console.error("Unable to load Admin challenges:",error);toast("Unable to load Admin challenges.");adminChallenges=[];return false}
+ adminChallenges=data||[];console.log("Admin challenges:",adminChallenges);return true
+}
+async function loadAdmin(){
+ const ok=await loadAdminChallenges();
+ if(!ok)return;
+ await renderAdminDashboard();renderAdminChallenges();fillResultsSelect()
+}
+async function renderAdminDashboard(){
+ const list=adminChallenges,cur=list.find(x=>x.status==="published");
+ document.getElementById("statTotal").textContent=list.length;
+ document.getElementById("statPublished").textContent=list.filter(x=>x.status==="published").length;
+ document.getElementById("statTopic").textContent=cur?.topic||"—";
+ document.getElementById("currentAdminSummary").innerHTML=cur?`<div style="padding:8px 0"><b>${esc(cur.label)} — ${esc(cur.title)}</b><div class="sub">${esc(cur.topic)} • ${cur.starts_on} to ${cur.ends_on} • ${(cur.entries||[]).length} terms</div><div class="toolbar"><button class="btn alt" onclick="editChallenge('${cur.id}')">Edit Current Challenge</button><button class="btn" onclick="newChallenge()">+ New Challenge</button></div></div>`:'<div class="empty">No published challenge. Create or publish a challenge.</div>';
+ const resultSets=await Promise.all(list.map(c=>challengeResults(c.id)));
+ document.getElementById("statPlayers").textContent=resultSets.reduce((sum,rows)=>sum+rows.length,0)
 }
 function renderAdminChallenges(){
- document.getElementById("challengeRows").innerHTML=challenges().map(c=>`<tr><td><b>${esc(c.label)}</b><br>${esc(c.title)}</td><td>${esc(c.topic)}</td><td>${c.starts_on}<br>${c.ends_on}</td><td><span class="badge ${c.status}">${c.status}</span></td><td>${(c.entries||[]).length}</td><td><button class="btn alt" onclick="editChallenge('${c.id}')">Edit</button> <button class="btn red" onclick="deleteChallenge('${c.id}')">Delete</button></td></tr>`).join("")
+ document.getElementById("challengeRows").innerHTML=adminChallenges.map(c=>`<tr><td><b>${esc(c.label)}</b><br>${esc(c.title)}</td><td>${esc(c.topic)}</td><td>${c.starts_on}<br>${c.ends_on}</td><td><span class="badge ${c.status}">${c.status}</span></td><td>${(c.entries||[]).length}</td><td><button class="btn alt" onclick="editChallenge('${c.id}')">Edit</button> <button class="btn red" onclick="deleteChallenge('${c.id}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="6"><div class="empty">No challenges found.</div></td></tr>'
 }
 document.getElementById("createChallengeBtn").onclick=newChallenge;
 function newChallenge(){
- openView("adminEditor");document.getElementById("editId").value="";document.getElementById("editLabel").value=`Challenge ${String(challenges().length+1).padStart(2,"0")}`;document.getElementById("editStatus").value="draft";document.getElementById("editTitle").value="";document.getElementById("editTopic").value="";document.getElementById("editDescription").value="";document.getElementById("editStart").value="";document.getElementById("editEnd").value="";document.getElementById("termRows").innerHTML="";for(let i=0;i<6;i++)addTerm();layoutEntries=[];renderPreview()
+ openView("adminEditor");document.getElementById("editId").value="";document.getElementById("editLabel").value=`Challenge ${String(adminChallenges.length+1).padStart(2,"0")}`;document.getElementById("editStatus").value="draft";document.getElementById("editTitle").value="";document.getElementById("editTopic").value="";document.getElementById("editDescription").value="";document.getElementById("editStart").value="";document.getElementById("editEnd").value="";document.getElementById("termRows").innerHTML="";for(let i=0;i<6;i++)addTerm();layoutEntries=[];renderPreview()
 }
 function editChallenge(id){
- const c=challenges().find(x=>x.id===id);if(!c)return;openView("adminEditor");
+ const c=adminChallenges.find(x=>x.id===id);if(!c)return;openView("adminEditor");
  document.getElementById("editId").value=c.id;document.getElementById("editLabel").value=c.label;document.getElementById("editStatus").value=c.status;document.getElementById("editTitle").value=c.title;document.getElementById("editTopic").value=c.topic;document.getElementById("editDescription").value=c.description||"";document.getElementById("editStart").value=c.starts_on;document.getElementById("editEnd").value=c.ends_on;document.getElementById("termRows").innerHTML="";(c.entries||[]).forEach(e=>addTerm(e.answer,e.clue));layoutEntries=structuredClone(c.entries||[]);renderPreview()
 }
 function addTerm(a="",c=""){const r=document.createElement("div");r.className="word-row";r.innerHTML=`<input class="term-answer" placeholder="ANSWER" value="${esc(a)}"><input class="term-clue" placeholder="Clue shown to employees" value="${esc(c)}"><button class="iconbtn">×</button>`;r.querySelector("button").onclick=()=>r.remove();document.getElementById("termRows").appendChild(r)}
@@ -1026,11 +488,11 @@ function formWords(){return [...document.querySelectorAll(".word-row")].map(r=>(
 function occupied(entries){const m=new Map();entries.forEach(e=>[...e.answer].forEach((ch,i)=>{const r=e.row+(e.direction==="down"?i:0),c=e.col+(e.direction==="across"?i:0);m.set(`${r}:${c}`,ch)}));return m}
 function canPlace(word,row,col,dir,placed){const m=occupied(placed);let cross=0;for(let i=0;i<word.length;i++){const r=row+(dir==="down"?i:0),c=col+(dir==="across"?i:0);if(r<0||c<0||r>40||c>40)return false;const k=`${r}:${c}`;if(m.has(k)){if(m.get(k)!==word[i])return false;cross++}}return placed.length===0||cross>0}
 function generateLayout(){
- const words=formWords().sort((a,b)=>b.answer.length-a.answer.length);if(words.length<2)return toast("Add at least two terms and clues.");
+ const words=formWords().sort((a,b)=>b.answer.length-a.answer.length);if(words.length<2){toast("Add at least two terms and clues.");return false}
  const placed=[{...words[0],direction:"across",row:12,col:9,number:1}];
  for(const item of words.slice(1)){let done=false;outer:for(const p of placed){for(let wi=0;wi<item.answer.length;wi++)for(let pi=0;pi<p.answer.length;pi++){if(item.answer[wi]!==p.answer[pi])continue;const dir=p.direction==="across"?"down":"across",cr=p.row+(p.direction==="down"?pi:0),cc=p.col+(p.direction==="across"?pi:0),row=cr-(dir==="down"?wi:0),col=cc-(dir==="across"?wi:0);if(canPlace(item.answer,row,col,dir,placed)){placed.push({...item,direction:dir,row,col,number:0});done=true;break outer}}}if(!done){const row=16+placed.length*2,col=3;placed.push({...item,direction:"across",row,col,number:0})}}
  const starts=[...new Set(placed.map(e=>`${e.row}:${e.col}`))].map(x=>x.split(":").map(Number)).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),nums=new Map(starts.map((x,i)=>[`${x[0]}:${x[1]}`,i+1]));placed.forEach(e=>e.number=nums.get(`${e.row}:${e.col}`));
- layoutEntries=placed;renderPreview();toast("Crossword layout generated.")
+ layoutEntries=placed;renderPreview();toast("Crossword layout generated.");return true
 }
 document.getElementById("generateBtn").onclick=generateLayout;
 function renderPreview(){
@@ -1042,19 +504,51 @@ function renderPreview(){
  cl.innerHTML="<b>Across:</b> "+layoutEntries.filter(x=>x.direction==="across").map(x=>`${x.number}. ${esc(x.clue)}`).join(" • ")+"<br><br><b>Down:</b> "+layoutEntries.filter(x=>x.direction==="down").map(x=>`${x.number}. ${esc(x.clue)}`).join(" • ")
 }
 function payload(statusOverride=null){
- if(!layoutEntries.length)generateLayout();
+ if(!layoutEntries.length&&!generateLayout())return null;
  return{id:document.getElementById("editId").value||("c"+Date.now()),label:document.getElementById("editLabel").value.trim(),title:document.getElementById("editTitle").value.trim(),topic:document.getElementById("editTopic").value.trim(),description:document.getElementById("editDescription").value.trim(),starts_on:document.getElementById("editStart").value,ends_on:document.getElementById("editEnd").value,status:statusOverride||document.getElementById("editStatus").value,entries:layoutEntries}
 }
-function saveChallenge(statusOverride=null){
- const p=payload(statusOverride);if(!p.label||!p.title||!p.topic||!p.starts_on||!p.ends_on)return toast("Complete the title, topic and dates.");if((p.entries||[]).length<2)return toast("Add at least two crossword terms.");
- const list=challenges();if(p.status==="published")list.forEach(x=>{if(x.id!==p.id&&x.status==="published")x.status="archived"});const i=list.findIndex(x=>x.id===p.id);if(i>=0)list[i]=p;else list.unshift(p);saveChallenges(list);document.getElementById("editId").value=p.id;toast(p.status==="published"?"Challenge published.":"Challenge saved.");loadAdmin();if(p.status==="published")currentChallenge=p
+async function saveChallengeToDatabase(statusOverride=null){
+ const p=payload(statusOverride);if(!p)return;
+ if(!p.label||!p.title||!p.topic||!p.starts_on||!p.ends_on)return toast("Complete the title, topic and dates.");
+ if((p.entries||[]).length<2)return toast("Add at least two crossword terms.");
+ console.log("Saving challenge to Supabase:",p);
+ const {data,error}=await supabaseClient.rpc("admin_save_challenge",{p_admin_name:session.name,p_admin_email:session.email,p_payload:p});
+ if(error){console.error("Challenge save failed:",error);toast("Unable to save challenge: "+error.message);return}
+ document.getElementById("editId").value=data;
+ document.getElementById("editStatus").value=p.status;
+ toast(p.status==="published"?"Challenge published successfully.":"Challenge saved successfully.");
+ await loadAdmin()
 }
-document.getElementById("saveBtn").onclick=()=>saveChallenge();document.getElementById("publishBtn").onclick=()=>{if(confirm("Publish this challenge for employees now?"))saveChallenge("published")};
-function deleteChallenge(id){if(!confirm("Delete this challenge?"))return;saveChallenges(challenges().filter(x=>x.id!==id));saveResults(results().filter(x=>x.challenge_id!==id));toast("Challenge deleted.");loadAdmin();renderAdminChallenges()}
-function fillResultsSelect(){document.getElementById("resultSelect").innerHTML=challenges().map(c=>`<option value="${c.id}">${esc(c.label)} — ${esc(c.title)}</option>`).join("")}
-function loadAdminResults(){const id=document.getElementById("resultSelect").value,rows=challengeResults(id);document.getElementById("adminResultsList").innerHTML=rows.map((r,i)=>`<div class="rank"><b>#${i+1}</b><div><b>${esc(r.display_name)}</b><br><span class="sub">${esc(r.email||"")}</span></div><b>${fmt(r.elapsed_ms)}</b></div>`).join("")||'<div class="empty">No completions recorded for this challenge.</div>'}
+document.getElementById("saveBtn").onclick=()=>saveChallengeToDatabase();
+document.getElementById("publishBtn").onclick=async()=>{if(confirm("Publish this challenge for employees now?"))await saveChallengeToDatabase("published")};
+
+async function deleteChallenge(id){
+ if(!confirm("Delete this challenge? This action cannot be undone."))return;
+ const {error}=await supabaseClient.rpc("admin_delete_challenge",{p_admin_name:session.name,p_admin_email:session.email,p_challenge_id:id});
+ if(error){console.error("Delete failed:",error);toast("Unable to delete challenge: "+error.message);return}
+ toast("Challenge deleted.");await loadAdmin();openView("adminChallenges")
+}
+function fillResultsSelect(){
+ const select=document.getElementById("resultSelect");
+ const previous=select.value;
+ select.innerHTML=adminChallenges.map(c=>`<option value="${c.id}">${esc(c.label)} — ${esc(c.title)}</option>`).join("");
+ if(previous&&adminChallenges.some(c=>c.id===previous))select.value=previous
+}
+async function loadAdminResults(){
+ const id=document.getElementById("resultSelect").value;
+ if(!id){document.getElementById("adminResultsList").innerHTML='<div class="empty">No challenge selected.</div>';return}
+ const rows=await challengeResults(id);
+ document.getElementById("adminResultsList").innerHTML=rows.map((r,i)=>`<div class="rank"><b>#${i+1}</b><div><b>${esc(r.display_name)}</b>${r.email?`<br><span class="sub">${esc(r.email)}</span>`:""}</div><b>${fmt(r.elapsed_ms)}</b></div>`).join("")||'<div class="empty">No completions recorded for this challenge.</div>'
+}
 document.getElementById("loadResultsBtn").onclick=loadAdminResults;
-document.getElementById("resetResultsBtn").onclick=()=>{const id=document.getElementById("resultSelect").value;if(!confirm("Reset all recorded results for this challenge?"))return;saveResults(results().filter(x=>x.challenge_id!==id));toast("Leaderboard reset.");loadAdminResults();renderAdminDashboard()}
+async function resetLeaderboard(){
+ const id=document.getElementById("resultSelect").value;if(!id)return toast("Select a challenge first.");
+ if(!confirm("Reset all recorded results for this challenge?"))return;
+ const {error}=await supabaseClient.rpc("admin_reset_leaderboard",{p_admin_name:session.name,p_admin_email:session.email,p_challenge_id:id});
+ if(error){console.error("Leaderboard reset failed:",error);toast("Unable to reset leaderboard: "+error.message);return}
+ toast("Leaderboard reset.");await loadAdminResults();await renderAdminDashboard()
+}
+document.getElementById("resetResultsBtn").onclick=resetLeaderboard;
 
 /* Restore session only within the current browser tab */
 (function init(){
